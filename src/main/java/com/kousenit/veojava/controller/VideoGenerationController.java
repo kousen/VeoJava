@@ -1,6 +1,7 @@
 package com.kousenit.veojava.controller;
 
 import com.kousenit.veojava.config.VeoClientConfig;
+import com.kousenit.veojava.model.VeoJavaRecords.VideoPromptRequest;
 import com.kousenit.veojava.service.VideoGenerationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +22,8 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/rest-client")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithRestClient(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithRestClient(@RequestBody VideoPromptRequest request) {
+        String prompt = request.prompt();
         return videoService.generateAndSaveVideo(prompt, "restclient", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
@@ -44,8 +45,8 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/http-client")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithHttpClient(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithHttpClient(@RequestBody VideoPromptRequest request) {
+        String prompt = request.prompt();
         return videoService.generateAndSaveVideo(prompt, "httpclient", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
@@ -67,8 +68,8 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/completable-future")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithCompletableFuture(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithCompletableFuture(@RequestBody VideoPromptRequest request) {
+        String prompt = request.prompt();
         return videoService.generateAndSaveVideo(prompt, "completablefuture", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
@@ -90,8 +91,8 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/scheduled-executor")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithScheduledExecutor(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithScheduledExecutor(@RequestBody VideoPromptRequest request) {
+        String prompt = request.prompt();
         return videoService.generateAndSaveVideo(prompt, "scheduledexecutor", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
@@ -113,8 +114,8 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/reactive")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithReactive(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithReactive(@RequestBody VideoPromptRequest request) {
+        String prompt = request.prompt();
         return videoService.generateAndSaveVideo(prompt, "reactive", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
@@ -136,8 +137,8 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/virtual-thread")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithVirtualThread(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithVirtualThread(@RequestBody VideoPromptRequest request) {
+        String prompt = request.prompt();
         return videoService.generateAndSaveVideo(prompt, "virtualthread", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(

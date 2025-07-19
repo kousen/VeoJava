@@ -7,6 +7,9 @@ import java.util.Map;
 
 public class VeoJavaRecords {
 
+    // Simple request DTO for REST endpoints
+    public record VideoPromptRequest(String prompt) {}
+
     public record VideoGenerationRequest(
             List<Instance> instances,
             Parameters parameters
@@ -66,17 +69,7 @@ public class VeoJavaRecords {
                 @JsonProperty("uri") String uri
         ) {}
         
-        // Keep the old PredictionResult for backwards compatibility
-        public record PredictionResult(
-                String bytesBase64Encoded,
-                String mimeType,
-                Map<String, Object> metadata
-        ) {}
     }
-
-    public record VideoDownloadRequest(
-            String operationId
-    ) {}
 
     public record VideoResult(
             String videoBase64,
