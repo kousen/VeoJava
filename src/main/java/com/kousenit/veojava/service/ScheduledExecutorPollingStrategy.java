@@ -58,7 +58,7 @@ public final class ScheduledExecutorPollingStrategy implements PollingStrategy {
         }, 0, 5, TimeUnit.SECONDS);
         
         // Cancel polling when future completes
-        future.whenComplete((result, throwable) -> pollingTask.cancel(false));
+        future.whenComplete((_, _) -> pollingTask.cancel(false));
     }
     
     @Override

@@ -1,17 +1,15 @@
 package com.kousenit.veojava.client;
 
+import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationResponse;
-import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.net.http.HttpClient;
 import java.util.Base64;
 
 @Component("restClientVeoVideoClient")
@@ -44,14 +42,12 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     
     // Helper method to create RestClient with redirect support
     private RestClient createRestClient(String apiKey) {
-        // Configure request factory to follow redirects
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
-            @Override
-            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
-                super.prepareConnection(connection, httpMethod);
-                connection.setInstanceFollowRedirects(true);
-            }
-        };
+        // Use modern Java HttpClient with redirect support
+        HttpClient httpClient = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+        
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         
         return RestClient.builder()
                 .baseUrl(BASE_URL)

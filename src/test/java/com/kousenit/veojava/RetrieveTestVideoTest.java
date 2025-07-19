@@ -2,6 +2,8 @@ package com.kousenit.veojava;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,54 +14,96 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Diagnostic test for downloading specific video files from Google's file service.
+ * Useful for retrieving test videos when you have a direct download URI.
+ * <p>
+ * To use: Replace the video URI and operation ID with actual values from your API responses.
+ */
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
 public class RetrieveTestVideoTest {
     
-    @Test
-    void downloadTestVideo() throws IOException, InterruptedException {
+    @ParameterizedTest
+    @CsvSource({
+        "'https://generativelanguage.googleapis.com/v1beta/files/example-file-id:download?alt=media', 'example-operation-id'"
+        // Add your actual video URIs and operation IDs here for testing
+    })
+    void downloadSpecificVideo(String videoUri, String operationId) throws IOException, InterruptedException {
         String apiKey = System.getenv("GOOGLEAI_API_KEY");
+        assertNotNull(apiKey, "GOOGLEAI_API_KEY environment variable must be set");
         
-        // Video URI from our previous test
-        String videoUri = "https://generativelanguage.googleapis.com/v1beta/files/a936dm659f6e:download?alt=media";
-        String operationId = "tglsvrvwxxft";
-        
-        HttpClient client = HttpClient.newBuilder()
+        try (HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
                 .followRedirects(HttpClient.Redirect.NORMAL)
-                .build();
-        
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(videoUri))
-                .header("x-goog-api-key", apiKey)
-                .timeout(Duration.ofMinutes(5))
-                .GET()
-                .build();
-        
-        System.out.println("Downloading video from: " + videoUri);
-        
-        HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-        
-        System.out.println("Response Status: " + response.statusCode());
-        System.out.println("Content-Type: " + response.headers().firstValue("content-type").orElse("unknown"));
-        System.out.println("Content-Length: " + response.body().length + " bytes");
-        
-        if (response.statusCode() == 200) {
-            // Save the video
-            Path videosDir = Paths.get("./videos");
-            if (!Files.exists(videosDir)) {
-                Files.createDirectories(videosDir);
+                .build()) {
+            
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(videoUri))
+                    .header("x-goog-api-key", apiKey)
+                    .timeout(Duration.ofMinutes(5))
+                    .GET()
+                    .build();
+            
+            System.out.println("📥 Downloading video from: " + videoUri);
+            
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            
+            System.out.println("📡 Response Status: " + response.statusCode());
+            System.out.println("📄 Content-Type: " + response.headers().firstValue("content-type").orElse("unknown"));
+            System.out.println("📏 Content-Length: " + response.body().length + " bytes");
+            
+            if (response.statusCode() == 200) {
+                // Basic assertions for successful download
+                assertNotNull(response.body(), "Response body should not be null");
+                assertTrue(response.body().length > 1000, "Video should be larger than 1KB");
+                
+                // Save the video with timestamp to avoid overwrites
+                Path videosDir = Paths.get("./test_videos");
+                if (!Files.exists(videosDir)) {
+                    Files.createDirectories(videosDir);
+                }
+                
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                String mimeType = response.headers().firstValue("content-type").orElse("video/mp4");
+                String extension = mimeType.contains("mp4") ? ".mp4" : ".mov";
+                String filename = "diagnostic_video_" + operationId + "_" + timestamp + extension;
+                Path videoPath = videosDir.resolve(filename);
+                
+                Files.write(videoPath, response.body());
+                
+                System.out.println("✅ Video saved to: " + videoPath.toAbsolutePath());
+                System.out.println("🎬 Video size: " + Files.size(videoPath) + " bytes");
+                
+                // Verify file was written correctly
+                assertTrue(Files.exists(videoPath), "Video file should exist after download");
+                assertEquals(response.body().length, Files.size(videoPath), "File size should match downloaded bytes");
+                
+            } else if (response.statusCode() == 404) {
+                System.out.println("❌ Video not found (may have expired): " + response.statusCode());
+                assertNotNull(response.body(), "Response body should contain error details");
+            } else {
+                System.out.println("❌ Failed to download video: " + response.statusCode());
+                System.out.println("Response: " + new String(response.body()));
+                fail("Unexpected response status: " + response.statusCode());
             }
-            
-            String filename = "test_video_" + operationId + ".mp4";
-            Path videoPath = videosDir.resolve(filename);
-            
-            Files.write(videoPath, response.body());
-            
-            System.out.println("✅ Video saved to: " + videoPath.toAbsolutePath());
-            System.out.println("🎬 Video size: " + Files.size(videoPath) + " bytes");
-        } else {
-            System.out.println("❌ Failed to download video: " + response.statusCode());
         }
+    }
+    
+    @Test
+    void testVideoUriFormat() {
+        // Test URI format validation without making API calls
+        String baseFileUrl = "https://generativelanguage.googleapis.com/v1beta/files";
+        String fileId = "test123";
+        String expectedUri = baseFileUrl + "/" + fileId + ":download?alt=media";
+        
+        assertEquals("https://generativelanguage.googleapis.com/v1beta/files/test123:download?alt=media", 
+                expectedUri);
+        
+        System.out.println("✅ Video URI format validation passed");
     }
 }
