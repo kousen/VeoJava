@@ -1,0 +1,62 @@
+package com.kousenit.veojava.service;
+
+import com.kousenit.veojava.client.VeoVideoClient;
+import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
+import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
+import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+@Component
+public final class CompletableFuturePollingStrategy implements PollingStrategy {
+    
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    
+    @Override
+    public CompletableFuture<VideoResult> generateVideo(VeoVideoClient client, VideoGenerationRequest request) {
+        return CompletableFuture
+                .supplyAsync(() -> client.submitVideoGeneration(request))
+                .thenCompose(response -> pollForCompletion(client, response.operationId()))
+                .thenApply(client::downloadVideo);
+    }
+    
+    private CompletableFuture<String> pollForCompletion(VeoVideoClient client, String operationId) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        
+        Runnable pollTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OperationStatus status = client.checkOperationStatus(operationId);
+                    
+                    if (status.done()) {
+                        if (status.error() != null) {
+                            future.completeExceptionally(
+                                new RuntimeException("Video generation failed: " + status.error().message())
+                            );
+                        } else {
+                            future.complete(operationId);
+                        }
+                    } else {
+                        scheduler.schedule(this, 5, TimeUnit.SECONDS);
+                    }
+                } catch (Exception e) {
+                    future.completeExceptionally(e);
+                }
+            }
+        };
+        
+        scheduler.schedule(pollTask, 0, TimeUnit.SECONDS);
+        
+        return future.orTimeout(10, TimeUnit.MINUTES);
+    }
+    
+    @Override
+    public String getStrategyName() {
+        return "CompletableFuture";
+    }
+}

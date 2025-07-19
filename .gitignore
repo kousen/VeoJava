@@ -1,0 +1,78 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Project-specific ###
+# Generated videos (our output directories)
+videos/
+demo_videos/
+test_videos/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Environment variables (sensitive)
+.env
+.env.local
+.env.production
+.env.test
+
+# API Keys (extra safety - GEMINI_API_KEY should be in environment)
+*.key
+api-keys.txt
+gemini-api-key.txt
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Coverage reports
+coverage/
+*.exec
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
