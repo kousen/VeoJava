@@ -48,10 +48,10 @@ class ModernJavaFeaturesTest {
     @Test
     void testSealedInterfacePatternMatching() {
         // Test with different strategy implementations
+        // Note: ReactivePollingStrategy omitted as it requires ReactiveVeoVideoClient dependency
         var strategies = List.of(
                 new CompletableFuturePollingStrategy(),
                 new ScheduledExecutorPollingStrategy(),
-                new ReactivePollingStrategy(),
                 new VirtualThreadPollingStrategy()
         );
         

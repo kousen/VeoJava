@@ -2,10 +2,16 @@ package com.kousenit.veojava;
 
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.service.VideoGenerationService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,9 +40,9 @@ class VeoClientIntegrationTest {
     }
     
     // Note: These tests require actual API calls and take several minutes
-    // Uncomment to test with real API (will consume quota and cost money)
+    // They are disabled by default to prevent accidental quota/cost consumption
     
-    /*
+    @Disabled("Requires actual API calls - costs ~$6 per test and takes several minutes")
     @Test
     void testRestClientVideoGeneration() throws Exception {
         String prompt = "A simple test animation";
@@ -49,6 +55,7 @@ class VeoClientIntegrationTest {
         assertTrue(Files.exists(Paths.get(filePath)));
     }
     
+    @Disabled("Requires actual API calls - costs ~$6 per test and takes several minutes")
     @Test
     void testHttpClientVideoGeneration() throws Exception {
         String prompt = "A simple test animation";
@@ -60,5 +67,4 @@ class VeoClientIntegrationTest {
         assertNotNull(filePath);
         assertTrue(Files.exists(Paths.get(filePath)));
     }
-    */
 }
