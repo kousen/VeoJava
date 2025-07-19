@@ -12,17 +12,18 @@ This Spring Boot application demonstrates multiple approaches to integrate with 
 - **Multiple Polling Strategies**:
   - `CompletableFuture`-based polling
   - `ScheduledExecutor`-based polling
+  - `VirtualThread`-based polling (Java 21+)
   - Reactive `Flux`-based polling
 
 - **REST API Endpoints** for testing all approaches
 - **Configuration** via `application.properties`
-- **Video file saving** with `Base64` decoding
+- **Video File Saving** with `Base64` decoding
 
 ## Prerequisites
 
 1. **Java 24** or later
 2. **Gradle** (wrapper included)
-3. **Gemini API Key** - Set the `GEMINI_API_KEY` environment variable
+3. **Gemini API Key** — Set the `GEMINI_API_KEY` environment variable
 
 ## Getting Started
 
@@ -51,6 +52,7 @@ The application starts on `http://localhost:8080`
 - **POST** `/api/video/generate/http-client`
 - **POST** `/api/video/generate/completable-future`
 - **POST** `/api/video/generate/scheduled-executor`
+- **POST** `/api/video/generate/virtual-thread`
 - **POST** `/api/video/generate/reactive`
 
 Request body:
@@ -112,15 +114,16 @@ veo.output.directory=./videos
 
 ### Client Approaches
 
-1. **`RestClient`** - Uses Spring's `RestClient` with auto-configured Jackson
-2. **`HttpClient`** - Uses Java 11+ `HttpClient` with explicit `ObjectMapper`
-3. **`ReactiveClient`** - Uses `WebClient` with `Mono`/`Flux` patterns
+1. **`RestClient`** — Uses Spring's `RestClient` with autoconfigured Jackson
+2. **`HttpClient`** — Uses Java 11+ `HttpClient` with explicit `ObjectMapper`
+3. **`ReactiveClient`** — Uses `WebClient` with `Mono`/`Flux` patterns
 
 ### Polling Strategies
 
-1. **`CompletableFuture`** - Chains futures with scheduled delays
-2. **`ScheduledExecutor`** - Uses `ScheduledExecutorService` for periodic checks
-3. **`Reactive`** - Uses `Flux.interval` with retry logic
+1. **`CompletableFuture`** — Chains futures with scheduled delays
+2. **`ScheduledExecutor`** — Uses `ScheduledExecutorService` for periodic checks
+3. **`VirtualThread`** — Uses virtual threads for lightweight blocking operations
+4. **`Reactive`** — Uses `Flux.interval` with retry logic
 
 ### Video Generation Process
 
@@ -182,8 +185,8 @@ This project demonstrates several key Java/Spring patterns:
 
 - **Multiple HTTP Client Approaches**: Compare Spring `RestClient`, Java `HttpClient`, and `WebClient`
 - **Async Patterns**: `CompletableFuture`, `ScheduledExecutor`, and Reactive streams
-- **Record-based Data Models**: All DTOs in a single `VeoJavaRecords` class for easy static imports
-- **Modern Java Features**: Sealed interfaces, pattern matching, virtual threads, unnamed variables (Java 22+)
+- **Record-Based Data Models**: All DTOs in a single `VeoJavaRecords` class for easy static imports
+- **Modern Java Features**: Sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers (Java 22+)
 - **Configuration Properties**: Type-safe configuration with `@ConfigurationProperties`
 - **Polling Strategies**: Different approaches to handle long-running operations
 - **Error Handling**: Comprehensive error handling across sync and async flows

@@ -47,20 +47,23 @@ public class ReactiveVeoVideoClient {
     
     public Mono<VideoResult> downloadVideo(String operationId) {
         return checkOperationStatus(operationId)
-                .map(status -> {
+                .handle((status, sink) -> {
                     if (!status.done()) {
-                        throw new IllegalStateException("Operation not completed yet");
+                        sink.error(new IllegalStateException("Operation not completed yet"));
+                        return;
                     }
                     
                     if (status.error() != null) {
-                        throw new RuntimeException("Operation failed: " + status.error().message());
+                        sink.error(new RuntimeException("Operation failed: " + status.error().message()));
+                        return;
                     }
                     
                     // Using pattern matching with instanceof for better null safety
                     if (!(status.response() instanceof OperationStatus.OperationResponse response) ||
                         response.predictions() == null || 
                         response.predictions().isEmpty()) {
-                        throw new RuntimeException("No video data found in response");
+                        sink.error(new RuntimeException("No video data found in response"));
+                        return;
                     }
                     
                     var prediction = response.predictions().getFirst();
@@ -71,7 +74,7 @@ public class ReactiveVeoVideoClient {
                     var filename = "video_" + operationId.replaceAll("[^a-zA-Z0-9]", "_") + 
                                   (mimeType.contains("mp4") ? ".mp4" : ".mov");
                     
-                    return new VideoResult(base64Video, mimeType, filename, videoBytes);
+                    sink.next(new VideoResult(base64Video, mimeType, filename, videoBytes));
                 });
     }
     

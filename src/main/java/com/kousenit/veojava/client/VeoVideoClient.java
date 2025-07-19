@@ -23,6 +23,8 @@ public interface VeoVideoClient {
             OperationStatus status;
             do {
                 try {
+                    // This is "busy waiting", blocking a platform thread
+                    // That's why we show all the other alternatives in this project
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

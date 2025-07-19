@@ -168,7 +168,7 @@ class ModernJavaFeaturesTest {
         // Use stream gatherers to calculate intervals between polling attempts (Java 22+)
         var intervals = pollingAttempts.stream()
                 .gather(Gatherers.windowSliding(2))
-                .map(window -> Duration.between(window.get(0), window.get(1)))
+                .map(window -> Duration.between(window.getFirst(), window.get(1)))
                 .toList();
         
         assertEquals(4, intervals.size()); // 5 attempts = 4 intervals
@@ -179,7 +179,7 @@ class ModernJavaFeaturesTest {
         // Demonstrate gatherer with filtering - only keep intervals over threshold
         var longIntervals = pollingAttempts.stream()
                 .gather(Gatherers.windowSliding(2))
-                .map(window -> Duration.between(window.get(0), window.get(1)))
+                .map(window -> Duration.between(window.getFirst(), window.get(1)))
                 .filter(duration -> duration.compareTo(Duration.ofSeconds(3)) > 0)
                 .toList();
         

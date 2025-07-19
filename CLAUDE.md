@@ -96,18 +96,20 @@ All DTOs are nested records in `VeoJavaRecords` class:
 - `VideoResult`
 
 ### Client Implementations
-1. **RestClientVeoVideoClient** - Spring RestClient with autoconfigured Jackson
-2. **HttpClientVeoVideoClient** - Java HttpClient with explicit ObjectMapper
-3. **ReactiveVeoVideoClient** - WebClient with Mono/Flux patterns
+1. **RestClientVeoVideoClient** — Spring RestClient with autoconfigured Jackson
+2. **HttpClientVeoVideoClient** — Java HttpClient with explicit ObjectMapper
+3. **ReactiveVeoVideoClient** — WebClient with Mono/Flux patterns
 
 ### Polling Strategies
-1. **CompletableFuturePollingStrategy** - Chains futures with delays
-2. **ScheduledExecutorPollingStrategy** - Periodic checks with ScheduledExecutorService
-3. **ReactivePollingStrategy** - Flux.interval with retry logic
+1. **CompletableFuturePollingStrategy** — Chains futures with delays
+2. **ScheduledExecutorPollingStrategy** — Periodic checks with ScheduledExecutorService
+3. **VirtualThreadPollingStrategy** — Uses virtual threads for lightweight blocking operations
+4. **ReactivePollingStrategy** — Flux.interval with retry logic
 
 ## Testing
 
 - Unit tests for records and basic functionality
+- Modern Java features demonstration (sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers)
 - Integration tests require valid API key (marked with `@EnabledIfEnvironmentVariable`)
 - Tests avoid actual API calls to prevent quota usage
 
@@ -126,6 +128,7 @@ REST endpoints for testing all approaches:
 - POST `/api/video/generate/http-client`
 - POST `/api/video/generate/completable-future`
 - POST `/api/video/generate/scheduled-executor`
+- POST `/api/video/generate/virtual-thread`
 - POST `/api/video/generate/reactive`
 - GET `/api/video/strategies`
 - GET `/api/video/health`

@@ -18,10 +18,8 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     private static final String OPERATION_ENDPOINT = "/operations/";
     
     private final RestClient restClient;
-    private final String apiKey;
-    
+
     public RestClientVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
-        this.apiKey = apiKey;
         this.restClient = RestClient.builder()
                 .baseUrl(BASE_URL)
                 .defaultHeader("x-goog-api-key", apiKey)

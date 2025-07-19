@@ -5,7 +5,6 @@ import com.kousenit.veojava.client.VeoVideoClient;
 import com.kousenit.veojava.model.VeoJavaRecords;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,8 +15,11 @@ import java.util.concurrent.CompletableFuture;
 @Component
 public final class ReactivePollingStrategy implements PollingStrategy {
     
-    @Autowired
-    private ReactiveVeoVideoClient reactiveClient;
+    private final ReactiveVeoVideoClient reactiveClient;
+    
+    public ReactivePollingStrategy(ReactiveVeoVideoClient reactiveClient) {
+        this.reactiveClient = reactiveClient;
+    }
     
     @Override
     public CompletableFuture<VideoResult> generateVideo(VeoVideoClient client, VideoGenerationRequest request) {
@@ -35,11 +37,12 @@ public final class ReactivePollingStrategy implements PollingStrategy {
                 .flatMap(tick -> reactiveClient.checkOperationStatus(operationId))
                 .filter(VeoJavaRecords.OperationStatus::done)
                 .next()
-                .map(status -> {
+                .handle((status, sink) -> {
                     if (status.error() != null) {
-                        throw new RuntimeException("Video generation failed: " + status.error().message());
+                        sink.error(new RuntimeException("Video generation failed: " + status.error().message()));
+                    } else {
+                        sink.next(operationId);
                     }
-                    return operationId;
                 })
                 .timeout(Duration.ofMinutes(10));
     }
