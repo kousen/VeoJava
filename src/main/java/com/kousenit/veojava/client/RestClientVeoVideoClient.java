@@ -7,7 +7,11 @@ import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Base64;
 
 @Component("restClientVeoVideoClient")
@@ -20,8 +24,18 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     private final RestClient restClient;
 
     public RestClientVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
+        // Configure request factory to follow redirects
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+                super.prepareConnection(connection, httpMethod);
+                connection.setInstanceFollowRedirects(true);
+            }
+        };
+        
         this.restClient = RestClient.builder()
                 .baseUrl(BASE_URL)
+                .requestFactory(requestFactory)
                 .defaultHeader("x-goog-api-key", apiKey)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
@@ -38,8 +52,13 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     
     @Override
     public OperationStatus checkOperationStatus(String operationId) {
+        // operationId is actually the full operation name like "models/veo-3.0-generate-preview/operations/xyz"
+        String uri = operationId.startsWith("models/") ? 
+                "/" + operationId : 
+                OPERATION_ENDPOINT + operationId;
+                
         return restClient.get()
-                .uri(OPERATION_ENDPOINT + operationId)
+                .uri(uri)
                 .retrieve()
                 .body(OperationStatus.class);
     }
@@ -56,20 +75,26 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
             throw new RuntimeException("Operation failed: " + status.error().message());
         }
         
-        // Using pattern matching with instanceof for better null safety
+        // Check the new response structure
         if (!(status.response() instanceof OperationStatus.OperationResponse response) ||
-            response.predictions() == null || 
-            response.predictions().isEmpty()) {
+            response.generateVideoResponse() == null ||
+            response.generateVideoResponse().generatedSamples() == null ||
+            response.generateVideoResponse().generatedSamples().isEmpty()) {
             throw new RuntimeException("No video data found in response");
         }
         
-        var prediction = response.predictions().getFirst();
-        var base64Video = prediction.bytesBase64Encoded();
-        var mimeType = prediction.mimeType();
+        var sample = response.generateVideoResponse().generatedSamples().getFirst();
+        var videoUri = sample.video().uri();
         
-        var videoBytes = Base64.getDecoder().decode(base64Video);
-        var filename = "video_" + operationId.replaceAll("[^a-zA-Z0-9]", "_") + 
-                      (mimeType.contains("mp4") ? ".mp4" : ".mov");
+        // Download the video from the URI using RestClient
+        byte[] videoBytes = restClient.get()
+                .uri(videoUri)
+                .retrieve()
+                .body(byte[].class);
+        
+        var base64Video = Base64.getEncoder().encodeToString(videoBytes);
+        var mimeType = "video/mp4"; // Default since RestClient doesn't easily expose headers
+        var filename = "video_" + operationId.replaceAll("[^a-zA-Z0-9]", "_") + ".mp4";
         
         return new VideoResult(base64Video, mimeType, filename, videoBytes);
     }

@@ -51,12 +51,15 @@ class VeoRecordsTest {
     @Test
     void testOperationStatusCompleted() {
         String operationId = "operations/test-123";
-        var prediction = new OperationStatus.PredictionResult(
-                "base64data", "video/mp4", Map.of()
+        var videoRef = new OperationStatus.VideoReference("https://example.com/video.mp4");
+        var sample = new OperationStatus.GeneratedSample(videoRef);
+        var videoResponse = new OperationStatus.GenerateVideoResponse(
+                List.of(sample),
+                List.of()
         );
         var operationResponse = new OperationStatus.OperationResponse(
-                "type.googleapis.com/google.cloud.aiplatform.v1.PredictResponse",
-                List.of(prediction)
+                "type.googleapis.com/google.ai.generativelanguage.v1beta.PredictLongRunningResponse",
+                videoResponse
         );
         
         OperationStatus status = new OperationStatus(
@@ -66,8 +69,8 @@ class VeoRecordsTest {
         assertTrue(status.done());
         assertNull(status.error());
         assertNotNull(status.response());
-        assertEquals(1, status.response().predictions().size());
-        assertEquals("base64data", status.response().predictions().getFirst().bytesBase64Encoded());
+        assertEquals(1, status.response().generateVideoResponse().generatedSamples().size());
+        assertEquals("https://example.com/video.mp4", status.response().generateVideoResponse().generatedSamples().getFirst().video().uri());
     }
     
     @Test

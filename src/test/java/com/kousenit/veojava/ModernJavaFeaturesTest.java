@@ -78,11 +78,15 @@ class ModernJavaFeaturesTest {
     
     @Test
     void testPatternMatchingWithInstanceof() {
+        var videoRef = new OperationStatus.VideoReference("https://example.com/video.mp4");
+        var sample = new OperationStatus.GeneratedSample(videoRef);
+        var videoResponse = new OperationStatus.GenerateVideoResponse(
+                List.of(sample),
+                List.of("Audio was filtered")
+        );
         var operationResponse = new OperationStatus.OperationResponse(
-                "type.googleapis.com/test",
-                List.of(new OperationStatus.PredictionResult(
-                        "base64data", "video/mp4", Map.of("duration", "8s")
-                ))
+                "type.googleapis.com/google.ai.generativelanguage.v1beta.PredictLongRunningResponse",
+                videoResponse
         );
         
         var status = new OperationStatus(
@@ -95,11 +99,11 @@ class ModernJavaFeaturesTest {
         
         // Using pattern matching with instanceof (Java 16+)
         if (status.response() instanceof OperationStatus.OperationResponse response && 
-            !response.predictions().isEmpty()) {
+            response.generateVideoResponse() != null &&
+            !response.generateVideoResponse().generatedSamples().isEmpty()) {
             
-            var prediction = response.predictions().getFirst();
-            assertEquals("video/mp4", prediction.mimeType());
-            assertEquals("base64data", prediction.bytesBase64Encoded());
+            var sample1 = response.generateVideoResponse().generatedSamples().getFirst();
+            assertEquals("https://example.com/video.mp4", sample1.video().uri());
         } else {
             fail("Expected valid operation response");
         }

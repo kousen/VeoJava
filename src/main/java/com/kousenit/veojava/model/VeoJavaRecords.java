@@ -50,9 +50,23 @@ public class VeoJavaRecords {
         
         public record OperationResponse(
                 @JsonProperty("@type") String type,
-                List<PredictionResult> predictions
+                @JsonProperty("generateVideoResponse") GenerateVideoResponse generateVideoResponse
         ) {}
         
+        public record GenerateVideoResponse(
+                @JsonProperty("generatedSamples") List<GeneratedSample> generatedSamples,
+                @JsonProperty("raiMediaFilteredReasons") List<String> raiMediaFilteredReasons
+        ) {}
+        
+        public record GeneratedSample(
+                @JsonProperty("video") VideoReference video
+        ) {}
+        
+        public record VideoReference(
+                @JsonProperty("uri") String uri
+        ) {}
+        
+        // Keep the old PredictionResult for backwards compatibility
         public record PredictionResult(
                 String bytesBase64Encoded,
                 String mimeType,

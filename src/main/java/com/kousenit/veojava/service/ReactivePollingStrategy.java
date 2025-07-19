@@ -37,7 +37,7 @@ public final class ReactivePollingStrategy implements PollingStrategy {
                 .flatMap(tick -> reactiveClient.checkOperationStatus(operationId))
                 .filter(VeoJavaRecords.OperationStatus::done)
                 .next()
-                .handle((status, sink) -> {
+                .<String>handle((status, sink) -> {
                     if (status.error() != null) {
                         sink.error(new RuntimeException("Video generation failed: " + status.error().message()));
                     } else {

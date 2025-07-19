@@ -9,7 +9,8 @@ This file contains important context for Claude Code to understand this project 
 ## Key Requirements & Constraints
 
 - **Java 24+** with Gradle build system
-- **API Key**: Requires `GEMINI_API_KEY` environment variable
+- **API Key**: Requires `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` environment variable
+- **Veo 3 Access**: Controlled access API requiring approval from Google
 - **Record Organization**: All DTOs are in a single `VeoJavaRecords` class for easy static imports
 - **Multiple Client Approaches**: RestClient, HttpClient, and WebClient implementations
 - **Async Patterns**: CompletableFuture, ScheduledExecutor, and Reactive polling strategies
@@ -68,7 +69,8 @@ src/main/java/com/kousenit/veojava/
 Main configuration in `application.properties`:
 
 ```properties
-gemini.api.key=${GEMINI_API_KEY}
+# API Configuration - checks GOOGLEAI_API_KEY first, then GEMINI_API_KEY
+gemini.api.key=${GOOGLEAI_API_KEY:${GEMINI_API_KEY}}
 veo.polling.interval-seconds=5
 veo.polling.max-timeout-minutes=10
 veo.output.directory=./videos
@@ -83,22 +85,29 @@ veo.output.directory=./videos
 - **Authentication**: `x-goog-api-key` header
 
 ### Video Generation Process
-1. Submit video generation request
-2. Poll operation status every 5 seconds
-3. Download completed video (Base64 encoded)
-4. Decode and save to file system
+1. **Submit** video generation request → Get operation ID  
+2. **Poll** operation status every 5 seconds → Wait for `done: true`
+3. **Extract** download URL from response → Get file URI with redirect
+4. **Download** video file → Follow 302 redirects to actual content
+5. **Save** to local file system → Write binary data to MP4 file
+
+**Critical Discovery**: Veo 3 API returns download URLs instead of base64-encoded data, requiring proper redirect handling in all HTTP clients.
 
 ### Record Design Pattern
 All DTOs are nested records in `VeoJavaRecords` class:
 - `VideoGenerationRequest` with factory method `of(prompt)`
 - `VideoGenerationResponse`
-- `OperationStatus` with nested error/response records
+- `OperationStatus` with `GenerateVideoResponse` → `GeneratedSample` → `VideoReference` structure
 - `VideoResult`
 
+**Updated**: Response structure changed to match actual Veo 3 API format with `generateVideoResponse.generatedSamples[].video.uri`
+
 ### Client Implementations
-1. **RestClientVeoVideoClient** — Spring RestClient with autoconfigured Jackson
-2. **HttpClientVeoVideoClient** — Java HttpClient with explicit ObjectMapper
-3. **ReactiveVeoVideoClient** — WebClient with Mono/Flux patterns
+1. **RestClientVeoVideoClient** — Spring RestClient with custom redirect handling via request factory
+2. **HttpClientVeoVideoClient** — Java HttpClient with `.followRedirects(NORMAL)`
+3. **ReactiveVeoVideoClient** — WebClient with Reactor Netty redirect support + 2MB buffer
+
+**All clients updated** to handle 302 redirects for video file downloads and increased buffer limits for large files.
 
 ### Polling Strategies
 1. **CompletableFuturePollingStrategy** — Chains futures with delays
@@ -110,16 +119,19 @@ All DTOs are nested records in `VeoJavaRecords` class:
 
 - Unit tests for records and basic functionality
 - Modern Java features demonstration (sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers)
-- Integration tests require valid API key (marked with `@EnabledIfEnvironmentVariable`)
-- Tests avoid actual API calls to prevent quota usage
+- Integration tests marked `@Disabled` by default to prevent accidental $6 charges
+- Tests require valid API key with Veo 3 access (marked with `@EnabledIfEnvironmentVariable`)
+- Redirect handling tests verify all HTTP clients work with Google's file service
 
 ## Common Development Tasks
 
 When making changes:
 1. Always run `./gradlew test` before committing
-2. Check that GEMINI_API_KEY is set for integration tests
+2. Check that `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` is set for integration tests
 3. Use static imports for VeoJavaRecords: `import static com.kousenit.veojava.model.VeoJavaRecords.*;`
 4. Follow existing patterns for error handling and async operations
+5. **Redirect handling**: Ensure all HTTP clients follow 302 redirects for video downloads
+6. **Buffer limits**: Configure adequate buffer sizes for video files (2MB+ for WebClient)
 
 ## API Endpoints
 
@@ -133,11 +145,18 @@ REST endpoints for testing all approaches:
 - GET `/api/video/strategies`
 - GET `/api/video/health`
 
-## Known Limitations
+## Known Limitations & Requirements
 
 - **Veo 3 API**: 8-second videos, 720p@24fps, English prompts only
-- **Paid Feature**: Requires billing enabled on Google Cloud
-- **Quota**: API calls consume quota and cost money
-- **Storage**: Videos stored server-side for 2 days only
+- **Cost**: $0.75/second (~$6 per 8-second video)
+- **Access**: Controlled access requiring Google approval
+- **Redirect handling**: All HTTP clients must follow 302 redirects
+- **Buffer limits**: Videos (~635KB) exceed default WebClient buffers (256KB)
+- **Content filtering**: Audio may be blocked while video succeeds
+- **RAI policies**: Generic prompts more likely to trigger content filters
 
-This project serves as a comprehensive example of different Java patterns for REST API integration with long-running operations.
+## Additional Documentation
+
+- **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Comprehensive technical documentation of API behavior, redirect handling, and response structure discoveries
+
+This project serves as a comprehensive example of different Java patterns for REST API integration with long-running operations, including important lessons about handling large media file delivery via URL-based downloads with redirect requirements.

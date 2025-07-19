@@ -24,102 +24,138 @@ public class VideoGenerationController {
     public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithRestClient(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
         return videoService.generateAndSaveVideo(prompt, "restclient", config.getOutput().getDirectory())
-                .thenApply(filePath -> ResponseEntity.ok(Map.of(
-                        "strategy", "RestClient",
-                        "prompt", prompt,
-                        "filePath", filePath,
-                        "status", "completed"
-                )))
-                .exceptionally(throwable -> ResponseEntity.internalServerError().body(Map.of(
-                        "strategy", "RestClient",
-                        "error", throwable.getMessage(),
-                        "status", "failed"
-                )));
+                .thenApply(filePath -> {
+                    Map<String, Object> resultMap = Map.of(
+                            "strategy", "RestClient",
+                            "prompt", prompt,
+                            "filePath", filePath,
+                            "status", "completed"
+                    );
+                    return ResponseEntity.ok(resultMap);
+                })
+                .exceptionally(throwable -> {
+                    Map<String, Object> errorMap = Map.of(
+                            "strategy", "RestClient",
+                            "error", throwable.getMessage(),
+                            "status", "failed"
+                    );
+                    return ResponseEntity.internalServerError().body(errorMap);
+                });
     }
     
     @PostMapping("/generate/http-client")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithHttpClient(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
         return videoService.generateAndSaveVideo(prompt, "httpclient", config.getOutput().getDirectory())
-                .thenApply(filePath -> ResponseEntity.ok(Map.of(
-                        "strategy", "HttpClient",
-                        "prompt", prompt,
-                        "filePath", filePath,
-                        "status", "completed"
-                )))
-                .exceptionally(throwable -> ResponseEntity.internalServerError().body(Map.of(
-                        "strategy", "HttpClient",
-                        "error", throwable.getMessage(),
-                        "status", "failed"
-                )));
+                .thenApply(filePath -> {
+                    Map<String, Object> resultMap = Map.of(
+                            "strategy", "HttpClient",
+                            "prompt", prompt,
+                            "filePath", filePath,
+                            "status", "completed"
+                    );
+                    return ResponseEntity.ok(resultMap);
+                })
+                .exceptionally(throwable -> {
+                    Map<String, Object> errorMap = Map.of(
+                            "strategy", "HttpClient",
+                            "error", throwable.getMessage(),
+                            "status", "failed"
+                    );
+                    return ResponseEntity.internalServerError().body(errorMap);
+                });
     }
     
     @PostMapping("/generate/completable-future")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithCompletableFuture(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
         return videoService.generateAndSaveVideo(prompt, "completablefuture", config.getOutput().getDirectory())
-                .thenApply(filePath -> ResponseEntity.ok(Map.of(
-                        "strategy", "CompletableFuture",
-                        "prompt", prompt,
-                        "filePath", filePath,
-                        "status", "completed"
-                )))
-                .exceptionally(throwable -> ResponseEntity.internalServerError().body(Map.of(
-                        "strategy", "CompletableFuture",
-                        "error", throwable.getMessage(),
-                        "status", "failed"
-                )));
+                .thenApply(filePath -> {
+                    Map<String, Object> resultMap = Map.of(
+                            "strategy", "CompletableFuture",
+                            "prompt", prompt,
+                            "filePath", filePath,
+                            "status", "completed"
+                    );
+                    return ResponseEntity.ok(resultMap);
+                })
+                .exceptionally(throwable -> {
+                    Map<String, Object> errorMap = Map.of(
+                            "strategy", "CompletableFuture",
+                            "error", throwable.getMessage(),
+                            "status", "failed"
+                    );
+                    return ResponseEntity.internalServerError().body(errorMap);
+                });
     }
     
     @PostMapping("/generate/scheduled-executor")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithScheduledExecutor(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
         return videoService.generateAndSaveVideo(prompt, "scheduledexecutor", config.getOutput().getDirectory())
-                .thenApply(filePath -> ResponseEntity.ok(Map.of(
-                        "strategy", "ScheduledExecutor",
-                        "prompt", prompt,
-                        "filePath", filePath,
-                        "status", "completed"
-                )))
-                .exceptionally(throwable -> ResponseEntity.internalServerError().body(Map.of(
-                        "strategy", "ScheduledExecutor",
-                        "error", throwable.getMessage(),
-                        "status", "failed"
-                )));
+                .thenApply(filePath -> {
+                    Map<String, Object> resultMap = Map.of(
+                            "strategy", "ScheduledExecutor",
+                            "prompt", prompt,
+                            "filePath", filePath,
+                            "status", "completed"
+                    );
+                    return ResponseEntity.ok(resultMap);
+                })
+                .exceptionally(throwable -> {
+                    Map<String, Object> errorMap = Map.of(
+                            "strategy", "ScheduledExecutor",
+                            "error", throwable.getMessage(),
+                            "status", "failed"
+                    );
+                    return ResponseEntity.internalServerError().body(errorMap);
+                });
     }
     
     @PostMapping("/generate/reactive")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithReactive(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
         return videoService.generateAndSaveVideo(prompt, "reactive", config.getOutput().getDirectory())
-                .thenApply(filePath -> ResponseEntity.ok(Map.of(
-                        "strategy", "Reactive",
-                        "prompt", prompt,
-                        "filePath", filePath,
-                        "status", "completed"
-                )))
-                .exceptionally(throwable -> ResponseEntity.internalServerError().body(Map.of(
-                        "strategy", "Reactive",
-                        "error", throwable.getMessage(),
-                        "status", "failed"
-                )));
+                .thenApply(filePath -> {
+                    Map<String, Object> resultMap = Map.of(
+                            "strategy", "Reactive",
+                            "prompt", prompt,
+                            "filePath", filePath,
+                            "status", "completed"
+                    );
+                    return ResponseEntity.ok(resultMap);
+                })
+                .exceptionally(throwable -> {
+                    Map<String, Object> errorMap = Map.of(
+                            "strategy", "Reactive",
+                            "error", throwable.getMessage(),
+                            "status", "failed"
+                    );
+                    return ResponseEntity.internalServerError().body(errorMap);
+                });
     }
     
     @PostMapping("/generate/virtual-thread")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithVirtualThread(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
         return videoService.generateAndSaveVideo(prompt, "virtualthread", config.getOutput().getDirectory())
-                .thenApply(filePath -> ResponseEntity.ok(Map.of(
-                        "strategy", "VirtualThread",
-                        "prompt", prompt,
-                        "filePath", filePath,
-                        "status", "completed"
-                )))
-                .exceptionally(throwable -> ResponseEntity.internalServerError().body(Map.of(
-                        "strategy", "VirtualThread",
-                        "error", throwable.getMessage(),
-                        "status", "failed"
-                )));
+                .thenApply(filePath -> {
+                    Map<String, Object> resultMap = Map.of(
+                            "strategy", "VirtualThread",
+                            "prompt", prompt,
+                            "filePath", filePath,
+                            "status", "completed"
+                    );
+                    return ResponseEntity.ok(resultMap);
+                })
+                .exceptionally(throwable -> {
+                    Map<String, Object> errorMap = Map.of(
+                            "strategy", "VirtualThread",
+                            "error", throwable.getMessage(),
+                            "status", "failed"
+                    );
+                    return ResponseEntity.internalServerError().body(errorMap);
+                });
     }
     
     @GetMapping("/strategies")

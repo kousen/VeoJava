@@ -27,13 +27,19 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
     private final String apiKey;
     
     public HttpClientVeoVideoClient() {
-        this.apiKey = System.getenv("GEMINI_API_KEY");
-        if (apiKey == null || apiKey.isEmpty()) {
-            throw new IllegalArgumentException("GEMINI_API_KEY environment variable is required");
+        // Try both common environment variable names
+        String key = System.getenv("GOOGLEAI_API_KEY");
+        if (key == null || key.isEmpty()) {
+            key = System.getenv("GEMINI_API_KEY");
         }
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("GOOGLEAI_API_KEY or GEMINI_API_KEY environment variable is required");
+        }
+        this.apiKey = key;
         
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
         
         this.objectMapper = new ObjectMapper();
@@ -69,8 +75,13 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
     @Override
     public OperationStatus checkOperationStatus(String operationId) {
         try {
+            // operationId is actually the full operation name like "models/veo-3.0-generate-preview/operations/xyz"
+            String url = operationId.startsWith("models/") ? 
+                    BASE_URL + "/" + operationId : 
+                    BASE_URL + OPERATION_ENDPOINT + operationId;
+                    
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + OPERATION_ENDPOINT + operationId))
+                    .uri(URI.create(url))
                     .header("x-goog-api-key", apiKey)
                     .header("Content-Type", "application/json")
                     .timeout(Duration.ofSeconds(30))
@@ -103,21 +114,43 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
             throw new RuntimeException("Operation failed: " + status.error().message());
         }
         
-        // Using pattern matching with instanceof for better null safety
+        // Check the new response structure
         if (!(status.response() instanceof OperationStatus.OperationResponse response) ||
-            response.predictions() == null || 
-            response.predictions().isEmpty()) {
+            response.generateVideoResponse() == null ||
+            response.generateVideoResponse().generatedSamples() == null ||
+            response.generateVideoResponse().generatedSamples().isEmpty()) {
             throw new RuntimeException("No video data found in response");
         }
         
-        var prediction = response.predictions().getFirst();
-        var base64Video = prediction.bytesBase64Encoded();
-        var mimeType = prediction.mimeType();
+        var sample = response.generateVideoResponse().generatedSamples().getFirst();
+        var videoUri = sample.video().uri();
         
-        var videoBytes = Base64.getDecoder().decode(base64Video);
-        var filename = "video_" + operationId.replaceAll("[^a-zA-Z0-9]", "_") + 
-                      (mimeType.contains("mp4") ? ".mp4" : ".mov");
-        
-        return new VideoResult(base64Video, mimeType, filename, videoBytes);
+        // Download the video from the URI
+        try {
+            HttpRequest downloadRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(videoUri))
+                    .header("x-goog-api-key", apiKey)
+                    .timeout(Duration.ofMinutes(5))
+                    .GET()
+                    .build();
+            
+            HttpResponse<byte[]> downloadResponse = httpClient.send(downloadRequest, 
+                    HttpResponse.BodyHandlers.ofByteArray());
+            
+            if (downloadResponse.statusCode() != 200) {
+                throw new RuntimeException("Failed to download video: HTTP " + downloadResponse.statusCode());
+            }
+            
+            var videoBytes = downloadResponse.body();
+            var base64Video = Base64.getEncoder().encodeToString(videoBytes);
+            var mimeType = downloadResponse.headers().firstValue("content-type").orElse("video/mp4");
+            var filename = "video_" + operationId.replaceAll("[^a-zA-Z0-9]", "_") + 
+                          (mimeType.contains("mp4") ? ".mp4" : ".mov");
+            
+            return new VideoResult(base64Video, mimeType, filename, videoBytes);
+            
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to download video", e);
+        }
     }
 }

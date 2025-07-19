@@ -22,13 +22,16 @@ This Spring Boot application demonstrates multiple approaches to integrate with 
 ## Prerequisites
 
 1. **Java 24** or later
-2. **Gradle** (wrapper included)
-3. **Gemini API Key** — Set the `GEMINI_API_KEY` environment variable
+2. **Gradle** (wrapper included)  
+3. **Gemini API Key** with **Veo 3 Access** — Set the `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` environment variable
+   - Note: Veo 3 is in controlled access and may require approval from Google
 
 ## Getting Started
 
 ### 1. Set up your API key
 ```bash
+export GOOGLEAI_API_KEY="your-api-key-here"
+# OR
 export GEMINI_API_KEY="your-api-key-here"
 ```
 
@@ -99,8 +102,8 @@ The demo will present an interactive menu where you can:
 Edit `src/main/resources/application.properties`:
 
 ```properties
-# API Configuration
-gemini.api.key=${GEMINI_API_KEY}
+# API Configuration - checks GOOGLEAI_API_KEY first, then GEMINI_API_KEY
+gemini.api.key=${GOOGLEAI_API_KEY:${GEMINI_API_KEY}}
 
 # Polling Configuration
 veo.polling.interval-seconds=5
@@ -127,17 +130,23 @@ veo.output.directory=./videos
 
 ### Video Generation Process
 
-1. Submit video generation request
-2. Poll operation status every 5 seconds
-3. Download completed video (`Base64` decoded)
-4. Save to local file system
+1. **Submit** video generation request → Get operation ID
+2. **Poll** operation status every 5 seconds → Wait for `done: true`
+3. **Extract** download URL from response → Get file URI with redirect
+4. **Download** video file → Follow 302 redirects to actual content
+5. **Save** to local file system → Write binary data to MP4 file
+
+**Key Discovery**: Veo 3 returns download URLs instead of base64-encoded data, requiring redirect handling for proper file retrieval.
 
 ## Important Notes
 
-- **Paid Feature**: Veo 3 requires billing to be enabled
+- **Paid Feature**: Veo 3 costs $0.75/second (~$6 for 8-second videos)
 - **8-second videos**: Current limitation of the API
 - **720p @ 24 fps**: Fixed resolution and frame rate
-- **2-day storage**: Videos are stored server-side for 2 days
+- **Redirect handling**: All HTTP clients must follow 302 redirects for video downloads
+- **Buffer limits**: WebClient requires 2MB+ buffer for video files (default 256KB insufficient)
+- **Content filtering**: Audio may be blocked while video succeeds
+- **Controlled access**: Veo 3 requires special API access approval
 - **English prompts**: Only English language supported
 
 ## Project Structure
@@ -159,7 +168,7 @@ Run tests:
 ./gradlew test
 ```
 
-Note: Integration tests require a valid API key and will make actual API calls.
+**Note**: Integration tests are disabled by default (using `@Disabled`) to prevent accidental API costs. Each test video costs ~$6 and takes several minutes to generate.
 
 ## Build and Run
 
@@ -191,6 +200,11 @@ This project demonstrates several key Java/Spring patterns:
 - **Polling Strategies**: Different approaches to handle long-running operations
 - **Error Handling**: Comprehensive error handling across sync and async flows
 
+## Additional Documentation
+
+- **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Detailed technical documentation about redirect handling, response structures, and API behavior discoveries
+- **[CLAUDE.md](CLAUDE.md)** - Development context and implementation decisions
+
 ## Contributing
 
-This is a demonstration project showing different Java approaches to REST API integration with async polling patterns. Feel free to explore and adapt the patterns for your own use cases.
+This is a demonstration project showing different Java approaches to REST API integration with async polling patterns. The implementation includes important discoveries about Google's Veo 3 API behavior, particularly around redirect handling and URL-based video delivery. Feel free to explore and adapt the patterns for your own use cases.
