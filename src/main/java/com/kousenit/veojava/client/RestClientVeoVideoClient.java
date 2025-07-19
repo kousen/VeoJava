@@ -23,7 +23,27 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     
     private final RestClient restClient;
 
+    // Constructor for Spring - uses property injection
     public RestClientVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
+        this.restClient = createRestClient(apiKey);
+    }
+    
+    // Constructor for demo usage - checks both environment variables
+    public RestClientVeoVideoClient() {
+        // Try both common environment variable names
+        String key = System.getenv("GOOGLEAI_API_KEY");
+        if (key == null || key.isEmpty()) {
+            key = System.getenv("GEMINI_API_KEY");
+        }
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("GOOGLEAI_API_KEY or GEMINI_API_KEY environment variable is required");
+        }
+        
+        this.restClient = createRestClient(key);
+    }
+    
+    // Helper method to create RestClient with redirect support
+    private RestClient createRestClient(String apiKey) {
         // Configure request factory to follow redirects
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
             @Override
@@ -33,7 +53,7 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
             }
         };
         
-        this.restClient = RestClient.builder()
+        return RestClient.builder()
                 .baseUrl(BASE_URL)
                 .requestFactory(requestFactory)
                 .defaultHeader("x-goog-api-key", apiKey)

@@ -111,6 +111,9 @@ veo.polling.max-timeout-minutes=10
 
 # Output Configuration
 veo.output.directory=./videos
+
+# Async Configuration - video generation takes 2-4 minutes
+spring.mvc.async.request-timeout=600000
 ```
 
 ## Implementation Details
@@ -148,6 +151,7 @@ veo.output.directory=./videos
 - **Content filtering**: Audio may be blocked while video succeeds
 - **Controlled access**: Veo 3 requires special API access approval
 - **English prompts**: Only English language supported
+- **Async timeout**: REST endpoints require 10-minute timeout due to 2-4 minute generation time
 
 ## Project Structure
 

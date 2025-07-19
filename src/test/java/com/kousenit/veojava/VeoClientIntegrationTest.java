@@ -42,10 +42,14 @@ class VeoClientIntegrationTest {
     // Note: These tests require actual API calls and take several minutes
     // They are disabled by default to prevent accidental quota/cost consumption
     
-    @Disabled("Requires actual API calls - costs ~$6 per test and takes several minutes")
+    //@Disabled("Requires actual API calls - costs ~$6 per test and takes several minutes")
     @Test
     void testRestClientVideoGeneration() throws Exception {
-        String prompt = "A simple test animation";
+        String prompt = """
+                A warrior cat flies into battle on the back
+                of a dragon. They roar in harmony as they
+                fly by.
+                """;
         CompletableFuture<String> future = videoService.generateAndSaveVideo(
                 prompt, "restclient", "./test_videos"
         );

@@ -74,6 +74,9 @@ gemini.api.key=${GOOGLEAI_API_KEY:${GEMINI_API_KEY}}
 veo.polling.interval-seconds=5
 veo.polling.max-timeout-minutes=10
 veo.output.directory=./videos
+
+# Async Configuration - video generation takes 2-4 minutes
+spring.mvc.async.request-timeout=600000
 ```
 
 ## Important Implementation Details
@@ -154,6 +157,8 @@ REST endpoints for testing all approaches:
 - **Buffer limits**: Videos (~635KB) exceed default WebClient buffers (256KB)
 - **Content filtering**: Audio may be blocked while video succeeds
 - **RAI policies**: Generic prompts more likely to trigger content filters
+- **Async timeout**: REST endpoints require 10-minute timeout due to 2-4 minute generation time
+- **Constructor patterns**: Multiple constructors needed for Spring DI vs standalone demo usage
 
 ## Additional Documentation
 

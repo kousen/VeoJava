@@ -116,8 +116,7 @@ public class VeoVideoDemo {
         System.out.println("=== RestClient Approach ===");
         
         // Create RestClient manually - works without Spring context for demo
-        String apiKey = System.getenv("GEMINI_API_KEY");
-        RestClientVeoVideoClient client = new RestClientVeoVideoClient(apiKey);
+        RestClientVeoVideoClient client = new RestClientVeoVideoClient();
         
         CompletableFuture<VideoResult> future = client.generateVideoAsync(
                 VideoGenerationRequest.of(prompt)
