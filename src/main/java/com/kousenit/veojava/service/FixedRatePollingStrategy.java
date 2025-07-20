@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-public final class ScheduledExecutorPollingStrategy implements PollingStrategy {
+public final class FixedRatePollingStrategy implements PollingStrategy {
     
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     
@@ -63,6 +63,6 @@ public final class ScheduledExecutorPollingStrategy implements PollingStrategy {
     
     @Override
     public String getStrategyName() {
-        return "ScheduledExecutor";
+        return "FixedRate";
     }
 }

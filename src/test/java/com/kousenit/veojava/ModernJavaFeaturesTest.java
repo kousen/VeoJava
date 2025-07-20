@@ -50,8 +50,8 @@ class ModernJavaFeaturesTest {
         // Test with different strategy implementations
         // Note: ReactivePollingStrategy omitted as it requires ReactiveVeoVideoClient dependency
         var strategies = List.of(
-                new CompletableFuturePollingStrategy(),
-                new ScheduledExecutorPollingStrategy(),
+                new SelfSchedulingPollingStrategy(),
+                new FixedRatePollingStrategy(),
                 new VirtualThreadPollingStrategy()
         );
         
@@ -65,10 +65,10 @@ class ModernJavaFeaturesTest {
     // Demonstrating pattern matching with sealed interface and unnamed variables (Java 22+)
     private String getStrategyDescription(PollingStrategy strategy) {
         return switch (strategy) {
-            case CompletableFuturePollingStrategy _ -> 
-                "Uses CompletableFuture with scheduled polling";
-            case ScheduledExecutorPollingStrategy _ -> 
-                "Uses ScheduledExecutorService for periodic checks";
+            case SelfSchedulingPollingStrategy _ -> 
+                "Uses self-scheduling pattern with CompletableFuture";
+            case FixedRatePollingStrategy _ -> 
+                "Uses ScheduledExecutorService for fixed-rate periodic checks";
             case ReactivePollingStrategy _ -> 
                 "Uses reactive streams with Flux.interval";
             case VirtualThreadPollingStrategy _ -> 

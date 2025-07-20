@@ -71,7 +71,7 @@ do {
 } while (!status.done());
 ```
 
-### CompletableFuture - GOOD FALLBACK
+### SelfScheduling - GOOD FALLBACK
 
 **Pros:**
 - Available since Java 8
@@ -84,7 +84,7 @@ do {
 - Can create callback hell
 - Thread pool exhaustion possible
 
-### ScheduledExecutor - TRADITIONAL CHOICE
+### FixedRate - TRADITIONAL CHOICE
 
 **Pros:**
 - Battle-tested approach
@@ -121,8 +121,8 @@ RestClientVeoVideoClient + VirtualThreadPollingStrategy
 
 ### For Spring Boot Applications (Java 11-20)
 ```java
-// GOOD: RestClient + CompletableFuture
-RestClientVeoVideoClient + CompletableFuturePollingStrategy
+// GOOD: RestClient + SelfScheduling
+RestClientVeoVideoClient + SelfSchedulingPollingStrategy
 ```
 - **Why**: Spring integration with proven async patterns
 - **Use when**: Stuck on older Java versions
@@ -181,8 +181,8 @@ Based on our testing with Veo 3 API (1-2 minute video generation):
 | Strategy | Memory Usage | CPU Usage | Code Complexity | Debugging Ease |
 |----------|--------------|-----------|-----------------|----------------|
 | Virtual Threads | Low | Low | Very Low | Excellent |
-| CompletableFuture | Medium | Medium | Medium | Good |
-| ScheduledExecutor | Medium | Low | Medium | Good |
+| SelfScheduling | Medium | Medium | Medium | Good |
+| FixedRate | Medium | Low | Medium | Good |
 | Reactive | Medium | Medium | High | Difficult |
 
 ## Production Recommendation
@@ -197,7 +197,7 @@ RestClient + VirtualThreadPollingStrategy
 HttpClient + VirtualThreadPollingStrategy
 
 // Java 11-20 (any environment)
-HttpClient + CompletableFuturePollingStrategy
+HttpClient + SelfSchedulingPollingStrategy
 ```
 
 ## Conclusion
@@ -210,7 +210,7 @@ This study demonstrates that **virtual threads + blocking code is often simpler 
 
 If you're currently using older async patterns:
 
-1. **Java 8-17 → Java 21**: Migrate from CompletableFuture/ScheduledExecutor to Virtual Threads
+1. **Java 8-17 → Java 21**: Migrate from SelfScheduling/FixedRate to Virtual Threads
 2. **Servlet → Reactive**: Only if you have specific reactive requirements
 3. **Legacy HTTP → Modern**: Prefer RestClient (Spring) or HttpClient (standalone) over legacy approaches
 

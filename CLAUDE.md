@@ -13,7 +13,7 @@ This file contains important context for Claude Code to understand this project 
 - **Veo 3 Access**: Controlled access API requiring approval from Google
 - **Record Organization**: All DTOs are in a single `VeoJavaRecords` class for easy static imports
 - **Multiple Client Approaches**: RestClient, HttpClient, and WebClient implementations
-- **Async Patterns**: CompletableFuture, ScheduledExecutor, and Reactive polling strategies
+- **Async Patterns**: SelfScheduling, FixedRate, VirtualThread, and Reactive polling strategies
 
 ## Build & Test Commands
 
@@ -51,9 +51,10 @@ src/main/java/com/kousenit/veojava/
 │   └── VeoJavaRecords.java (all DTOs here)
 ├── service/          # Business logic and polling strategies
 │   ├── VideoGenerationService.java
-│   ├── PollingStrategy.java (interface)
-│   ├── CompletableFuturePollingStrategy.java
-│   ├── ScheduledExecutorPollingStrategy.java
+│   ├── PollingStrategy.java (sealed interface)
+│   ├── SelfSchedulingPollingStrategy.java
+│   ├── FixedRatePollingStrategy.java
+│   ├── VirtualThreadPollingStrategy.java
 │   └── ReactivePollingStrategy.java
 └── VeoVideoDemo.java # Standalone demo
 ```
@@ -113,10 +114,10 @@ All DTOs are nested records in `VeoJavaRecords` class:
 **All clients updated** to handle 302 redirects for video file downloads and increased buffer limits for large files.
 
 ### Polling Strategies
-1. **CompletableFuturePollingStrategy** — Chains futures with delays
-2. **ScheduledExecutorPollingStrategy** — Periodic checks with ScheduledExecutorService
-3. **VirtualThreadPollingStrategy** — Uses virtual threads for lightweight blocking operations
-4. **ReactivePollingStrategy** — Flux.interval with retry logic
+1. **SelfSchedulingPollingStrategy** — Reschedules after each check (dynamic timing)
+2. **FixedRatePollingStrategy** — Fixed-rate periodic checks with ScheduledExecutorService
+3. **VirtualThreadPollingStrategy** — Uses virtual threads for lightweight blocking operations (Java 21+)
+4. **ReactivePollingStrategy** — Flux.interval with clean polling patterns (no exception-based control flow)
 
 ## Testing
 
@@ -141,8 +142,8 @@ When making changes:
 REST endpoints for testing all approaches:
 - POST `/api/video/generate/rest-client`
 - POST `/api/video/generate/http-client`
-- POST `/api/video/generate/completable-future`
-- POST `/api/video/generate/scheduled-executor`
+- POST `/api/video/generate/self-scheduling`
+- POST `/api/video/generate/fixed-rate`
 - POST `/api/video/generate/virtual-thread`
 - POST `/api/video/generate/reactive`
 - GET `/api/video/strategies`
@@ -160,8 +161,38 @@ REST endpoints for testing all approaches:
 - **Async timeout**: REST endpoints require 10-minute timeout due to 2-4 minute generation time
 - **Constructor patterns**: Multiple constructors needed for Spring DI vs standalone demo usage
 
+## Key Insights
+
+### Polling Strategy Comparison
+This project demonstrates **three alternatives to busy waiting** for long-running operations:
+
+1. **ScheduledExecutorService + CompletableFuture** (2 variants):
+   - `SelfSchedulingPollingStrategy`: Dynamic rate - reschedules after each check
+   - `FixedRatePollingStrategy`: Fixed rate - checks every 5 seconds regardless
+
+2. **Reactive Approach**: Uses `Flux.interval` for time-based polling with backpressure
+
+3. **Virtual Threads**: Simple blocking code that scales efficiently (Java 21+)
+
+All approaches avoid CPU-wasting busy loops while providing different trade-offs in complexity, resource usage, and debugging ease.
+
+### Simplicity vs. Complexity
+While Python's approach to the same API is elegantly simple:
+```python
+while not operation.done:
+    time.sleep(20)
+    operation = client.operations.get(operation)
+```
+
+The Java implementations showcase enterprise-grade patterns suitable for:
+- Production web applications with concurrent requests
+- Resource-efficient handling of multiple simultaneous operations
+- Integration with Spring's ecosystem and observability tools
+- Library code for different deployment contexts
+
 ## Additional Documentation
 
+- **[NETWORKING_STRATEGY_ANALYSIS.md](NETWORKING_STRATEGY_ANALYSIS.md)** - Comprehensive analysis and recommendations for different approaches
 - **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Comprehensive technical documentation of API behavior, redirect handling, and response structure discoveries
 
 This project serves as a comprehensive example of different Java patterns for REST API integration with long-running operations, including important lessons about handling large media file delivery via URL-based downloads with redirect requirements.

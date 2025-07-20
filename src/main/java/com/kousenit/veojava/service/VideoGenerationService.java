@@ -18,23 +18,23 @@ public class VideoGenerationService {
     
     private final VeoVideoClient restClient;
     private final VeoVideoClient httpClient;
-    private final CompletableFuturePollingStrategy completableFutureStrategy;
-    private final ScheduledExecutorPollingStrategy scheduledExecutorStrategy;
+    private final SelfSchedulingPollingStrategy selfSchedulingStrategy;
+    private final FixedRatePollingStrategy fixedRateStrategy;
     private final ReactivePollingStrategy reactiveStrategy;
     private final VirtualThreadPollingStrategy virtualThreadStrategy;
     
     public VideoGenerationService(
             @Qualifier("restClientVeoVideoClient") VeoVideoClient restClient,
             @Qualifier("httpClientVeoVideoClient") VeoVideoClient httpClient,
-            CompletableFuturePollingStrategy completableFutureStrategy,
-            ScheduledExecutorPollingStrategy scheduledExecutorStrategy,
+            SelfSchedulingPollingStrategy selfSchedulingStrategy,
+            FixedRatePollingStrategy fixedRateStrategy,
             ReactivePollingStrategy reactiveStrategy,
             VirtualThreadPollingStrategy virtualThreadStrategy) {
         
         this.restClient = restClient;
         this.httpClient = httpClient;
-        this.completableFutureStrategy = completableFutureStrategy;
-        this.scheduledExecutorStrategy = scheduledExecutorStrategy;
+        this.selfSchedulingStrategy = selfSchedulingStrategy;
+        this.fixedRateStrategy = fixedRateStrategy;
         this.reactiveStrategy = reactiveStrategy;
         this.virtualThreadStrategy = virtualThreadStrategy;
     }
@@ -49,14 +49,14 @@ public class VideoGenerationService {
         return httpClient.generateVideoAsync(request);
     }
     
-    public CompletableFuture<VideoResult> generateVideoWithCompletableFuture(String prompt) {
+    public CompletableFuture<VideoResult> generateVideoWithSelfScheduling(String prompt) {
         VideoGenerationRequest request = VideoGenerationRequest.of(prompt);
-        return completableFutureStrategy.generateVideo(restClient, request);
+        return selfSchedulingStrategy.generateVideo(restClient, request);
     }
     
-    public CompletableFuture<VideoResult> generateVideoWithScheduledExecutor(String prompt) {
+    public CompletableFuture<VideoResult> generateVideoWithFixedRate(String prompt) {
         VideoGenerationRequest request = VideoGenerationRequest.of(prompt);
-        return scheduledExecutorStrategy.generateVideo(restClient, request);
+        return fixedRateStrategy.generateVideo(restClient, request);
     }
     
     public CompletableFuture<VideoResult> generateVideoWithReactive(String prompt) {
@@ -88,8 +88,8 @@ public class VideoGenerationService {
         CompletableFuture<VideoResult> videoFuture = switch (strategy.toLowerCase()) {
             case "restclient" -> generateVideoWithRestClient(prompt);
             case "httpclient" -> generateVideoWithHttpClient(prompt);
-            case "completablefuture" -> generateVideoWithCompletableFuture(prompt);
-            case "scheduledexecutor" -> generateVideoWithScheduledExecutor(prompt);
+            case "selfscheduling" -> generateVideoWithSelfScheduling(prompt);
+            case "fixedrate" -> generateVideoWithFixedRate(prompt);
             case "reactive" -> generateVideoWithReactive(prompt);
             case "virtualthread" -> generateVideoWithVirtualThreads(prompt);
             default -> throw new IllegalArgumentException("Unknown strategy: " + strategy);

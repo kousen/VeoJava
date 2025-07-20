@@ -10,8 +10,8 @@ This Spring Boot application demonstrates multiple approaches to integrate with 
   - Reactive `WebClient`
 
 - **Multiple Polling Strategies**:
-  - `CompletableFuture`-based polling
-  - `ScheduledExecutor`-based polling
+  - `SelfScheduling`-based polling (dynamic intervals)
+  - `FixedRate`-based polling (fixed intervals)
   - `VirtualThread`-based polling (Java 21+)
   - Reactive `Flux`-based polling
 
@@ -53,8 +53,8 @@ The application starts on `http://localhost:8080`
 ### Generate Video (different approaches)
 - **POST** `/api/video/generate/rest-client`
 - **POST** `/api/video/generate/http-client`
-- **POST** `/api/video/generate/completable-future`
-- **POST** `/api/video/generate/scheduled-executor`
+- **POST** `/api/video/generate/self-scheduling`
+- **POST** `/api/video/generate/fixed-rate`
 - **POST** `/api/video/generate/virtual-thread`
 - **POST** `/api/video/generate/reactive`
 
@@ -126,10 +126,10 @@ spring.mvc.async.request-timeout=600000
 
 ### Polling Strategies
 
-1. **`CompletableFuture`** — Chains futures with scheduled delays
-2. **`ScheduledExecutor`** — Uses `ScheduledExecutorService` for periodic checks
+1. **`SelfScheduling`** — Reschedules after each check completes (dynamic timing)
+2. **`FixedRate`** — Uses `ScheduledExecutorService` for fixed periodic checks
 3. **`VirtualThread`** — Uses virtual threads for lightweight blocking operations
-4. **`Reactive`** — Uses `Flux.interval` with retry logic
+4. **`Reactive`** — Uses `Flux.interval` with clean polling patterns
 
 ### Video Generation Process
 
@@ -197,7 +197,8 @@ java -jar build/libs/VeoJava-0.0.1-SNAPSHOT.jar
 This project demonstrates several key Java/Spring patterns:
 
 - **Multiple HTTP Client Approaches**: Compare Spring `RestClient`, Java `HttpClient`, and `WebClient`
-- **Async Patterns**: `CompletableFuture`, `ScheduledExecutor`, and Reactive streams
+- **Async Patterns**: `SelfScheduling`, `FixedRate`, `VirtualThread`, and Reactive streams
+- **Polling Strategy Analysis**: Comprehensive comparison of non-busy-waiting approaches
 - **Record-Based Data Models**: All DTOs in a single `VeoJavaRecords` class for easy static imports
 - **Modern Java Features**: Sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers (Java 22+)
 - **Configuration Properties**: Type-safe configuration with `@ConfigurationProperties`
@@ -206,6 +207,7 @@ This project demonstrates several key Java/Spring patterns:
 
 ## Additional Documentation
 
+- **[NETWORKING_STRATEGY_ANALYSIS.md](NETWORKING_STRATEGY_ANALYSIS.md)** - Comprehensive analysis of HTTP clients and polling strategies with recommendations
 - **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Detailed technical documentation about redirect handling, response structures, and API behavior discoveries
 - **[CLAUDE.md](CLAUDE.md)** - Development context and implementation decisions
 

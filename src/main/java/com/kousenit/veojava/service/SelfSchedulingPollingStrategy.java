@@ -12,7 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public final class CompletableFuturePollingStrategy implements PollingStrategy {
+public final class SelfSchedulingPollingStrategy implements PollingStrategy {
     
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     
@@ -57,6 +57,6 @@ public final class CompletableFuturePollingStrategy implements PollingStrategy {
     
     @Override
     public String getStrategyName() {
-        return "CompletableFuture";
+        return "SelfScheduling";
     }
 }

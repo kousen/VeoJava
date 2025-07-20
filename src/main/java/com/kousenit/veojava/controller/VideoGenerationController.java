@@ -67,13 +67,13 @@ public class VideoGenerationController {
                 });
     }
     
-    @PostMapping("/generate/completable-future")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithCompletableFuture(@RequestBody VideoPromptRequest request) {
+    @PostMapping("/generate/self-scheduling")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithSelfScheduling(@RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "completablefuture", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "selfscheduling", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
-                            "strategy", "CompletableFuture",
+                            "strategy", "SelfScheduling",
                             "prompt", prompt,
                             "filePath", filePath,
                             "status", "completed"
@@ -82,7 +82,7 @@ public class VideoGenerationController {
                 })
                 .exceptionally(throwable -> {
                     Map<String, Object> errorMap = Map.of(
-                            "strategy", "CompletableFuture",
+                            "strategy", "SelfScheduling",
                             "error", throwable.getMessage(),
                             "status", "failed"
                     );
@@ -90,13 +90,13 @@ public class VideoGenerationController {
                 });
     }
     
-    @PostMapping("/generate/scheduled-executor")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithScheduledExecutor(@RequestBody VideoPromptRequest request) {
+    @PostMapping("/generate/fixed-rate")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithFixedRate(@RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "scheduledexecutor", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "fixedrate", config.getOutput().getDirectory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
-                            "strategy", "ScheduledExecutor",
+                            "strategy", "FixedRate",
                             "prompt", prompt,
                             "filePath", filePath,
                             "status", "completed"
@@ -105,7 +105,7 @@ public class VideoGenerationController {
                 })
                 .exceptionally(throwable -> {
                     Map<String, Object> errorMap = Map.of(
-                            "strategy", "ScheduledExecutor",
+                            "strategy", "FixedRate",
                             "error", throwable.getMessage(),
                             "status", "failed"
                     );
@@ -163,14 +163,14 @@ public class VideoGenerationController {
     public ResponseEntity<Map<String, Object>> getAvailableStrategies() {
         return ResponseEntity.ok(Map.of(
                 "strategies", new String[]{
-                        "RestClient", "HttpClient", "CompletableFuture", 
-                        "ScheduledExecutor", "Reactive", "VirtualThread"
+                        "RestClient", "HttpClient", "SelfScheduling", 
+                        "FixedRate", "Reactive", "VirtualThread"
                 },
                 "endpoints", Map.of(
                         "RestClient", "/api/video/generate/rest-client",
                         "HttpClient", "/api/video/generate/http-client",
-                        "CompletableFuture", "/api/video/generate/completable-future",
-                        "ScheduledExecutor", "/api/video/generate/scheduled-executor",
+                        "SelfScheduling", "/api/video/generate/self-scheduling",
+                        "FixedRate", "/api/video/generate/fixed-rate",
                         "Reactive", "/api/video/generate/reactive",
                         "VirtualThread", "/api/video/generate/virtual-thread"
                 ),

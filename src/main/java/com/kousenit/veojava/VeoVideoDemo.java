@@ -5,8 +5,8 @@ import com.kousenit.veojava.client.RestClientVeoVideoClient;
 import com.kousenit.veojava.client.VeoVideoClient;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
-import com.kousenit.veojava.service.CompletableFuturePollingStrategy;
-import com.kousenit.veojava.service.ScheduledExecutorPollingStrategy;
+import com.kousenit.veojava.service.SelfSchedulingPollingStrategy;
+import com.kousenit.veojava.service.FixedRatePollingStrategy;
 import com.kousenit.veojava.service.VirtualThreadPollingStrategy;
 
 import java.io.FileOutputStream;
@@ -53,8 +53,8 @@ public class VeoVideoDemo {
                     switch (choice) {
                         case 1 -> demoHttpClientApproach(prompt);
                         case 2 -> demoRestClientApproach(prompt);
-                        case 3 -> demoCompletableFutureStrategy(prompt);
-                        case 4 -> demoScheduledExecutorStrategy(prompt);
+                        case 3 -> demoSelfSchedulingStrategy(prompt);
+                        case 4 -> demoFixedRateStrategy(prompt);
                         case 5 -> demoVirtualThreadStrategy(prompt);
                     }
                     
@@ -72,8 +72,8 @@ public class VeoVideoDemo {
         System.out.println("Available approaches:");
         System.out.println("1. HttpClient (pure Java, no Spring)");
         System.out.println("2. RestClient (Spring's modern HTTP client)");
-        System.out.println("3. CompletableFuture polling strategy");
-        System.out.println("4. ScheduledExecutor polling strategy");  
+        System.out.println("3. SelfScheduling polling strategy");
+        System.out.println("4. FixedRate polling strategy");  
         System.out.println("5. VirtualThread polling strategy");
         System.out.println("0. Exit");
     }
@@ -128,33 +128,33 @@ public class VeoVideoDemo {
         System.out.println("File size: " + result.videoBytes().length + " bytes\n");
     }
     
-    private static void demoCompletableFutureStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
-        System.out.println("=== CompletableFuture Strategy ===");
+    private static void demoSelfSchedulingStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
+        System.out.println("=== SelfScheduling Strategy ===");
         VeoVideoClient client = new HttpClientVeoVideoClient();
-        CompletableFuturePollingStrategy strategy = new CompletableFuturePollingStrategy();
+        SelfSchedulingPollingStrategy strategy = new SelfSchedulingPollingStrategy();
         
         CompletableFuture<VideoResult> future = strategy.generateVideo(
                 client, VideoGenerationRequest.of(prompt)
         );
         
         VideoResult result = future.get();
-        String filename = saveVideo(result, "completable_future_");
+        String filename = saveVideo(result, "self_scheduling_");
         System.out.println("Video saved: " + filename);
         System.out.println("Strategy: " + strategy.getStrategyName());
         System.out.println("File size: " + result.videoBytes().length + " bytes\n");
     }
     
-    private static void demoScheduledExecutorStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
-        System.out.println("=== ScheduledExecutor Strategy ===");
+    private static void demoFixedRateStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
+        System.out.println("=== FixedRate Strategy ===");
         VeoVideoClient client = new HttpClientVeoVideoClient();
-        ScheduledExecutorPollingStrategy strategy = new ScheduledExecutorPollingStrategy();
+        FixedRatePollingStrategy strategy = new FixedRatePollingStrategy();
         
         CompletableFuture<VideoResult> future = strategy.generateVideo(
                 client, VideoGenerationRequest.of(prompt)
         );
         
         VideoResult result = future.get();
-        String filename = saveVideo(result, "scheduled_executor_");
+        String filename = saveVideo(result, "fixed_rate_");
         System.out.println("Video saved: " + filename);
         System.out.println("Strategy: " + strategy.getStrategyName());
         System.out.println("File size: " + result.videoBytes().length + " bytes\n");
