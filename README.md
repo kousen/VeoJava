@@ -1,6 +1,12 @@
 # Veo Java - Google Gemini Veo 3 Video Generator Java Client
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Java](https://img.shields.io/badge/Java-24+-blue.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3+-green.svg)](https://spring.io/projects/spring-boot)
+
 This Spring Boot application demonstrates multiple approaches to integrate with Google's Gemini Veo 3 video generation API from Java. The implementation is based on the REST API documented at https://ai.google.dev/gemini-api/docs/video (note that the official examples only show Python, JavaScript, and Go, but this project demonstrates Java integration patterns).
+
+> **⚠️ Important**: This is a demonstration project showing different Java polling strategies for long-running operations. Each video generation costs ~$6.00 and requires Google API access approval.
 
 ## Features
 
