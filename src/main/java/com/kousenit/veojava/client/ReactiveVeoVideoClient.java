@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
@@ -108,18 +108,19 @@ public class ReactiveVeoVideoClient {
     }
     
     private Mono<String> pollUntilComplete(String operationId) {
-        return checkOperationStatus(operationId)
-                .flatMap(status -> {
-                    if (status.done()) {
-                        if (status.error() != null) {
-                            return Mono.error(new RuntimeException("Video generation failed: " + status.error().message()));
-                        }
-                        return Mono.just(operationId);
+        // Clean reactive polling using Flux.interval - preferred approach for time-based operations.
+        // This avoids exception-based control flow and clearly expresses the polling intent.
+        return Flux.interval(Duration.ZERO, Duration.ofSeconds(5))
+                .flatMap(_ -> checkOperationStatus(operationId))
+                .filter(OperationStatus::done)
+                .next()
+                .<String>handle((status, sink) -> {
+                    if (status.error() != null) {
+                        sink.error(new RuntimeException("Video generation failed: " + status.error().message()));
+                    } else {
+                        sink.next(operationId);
                     }
-                    return Mono.error(new IllegalStateException("Operation not complete"));
                 })
-                .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5))
-                        .filter(throwable -> throwable instanceof IllegalStateException))
                 .timeout(Duration.ofMinutes(10));
     }
 }
