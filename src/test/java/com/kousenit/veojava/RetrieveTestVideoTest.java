@@ -1,5 +1,6 @@
 package com.kousenit.veojava;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
 public class RetrieveTestVideoTest {
     
+    @Disabled("Disabled to prevent accidental API calls and video downloads - enable manually for testing")
     @ParameterizedTest
     @CsvSource({
         "'https://generativelanguage.googleapis.com/v1beta/files/example-file-id:download?alt=media', 'example-operation-id'"
@@ -63,7 +65,7 @@ public class RetrieveTestVideoTest {
                 assertTrue(response.body().length > 1000, "Video should be larger than 1KB");
                 
                 // Save the video with timestamp to avoid overwrites
-                Path videosDir = Paths.get("./test_videos");
+                Path videosDir = Paths.get("./videos");
                 if (!Files.exists(videosDir)) {
                     Files.createDirectories(videosDir);
                 }

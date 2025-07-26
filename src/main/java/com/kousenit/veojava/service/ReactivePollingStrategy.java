@@ -4,6 +4,7 @@ import com.kousenit.veojava.client.ReactiveVeoVideoClient;
 import com.kousenit.veojava.client.VeoVideoClient;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
@@ -13,7 +14,7 @@ public final class ReactivePollingStrategy implements PollingStrategy {
     
     private final ReactiveVeoVideoClient reactiveClient;
     
-    public ReactivePollingStrategy(ReactiveVeoVideoClient reactiveClient) {
+    public ReactivePollingStrategy(@Qualifier("reactiveVeoVideoClient") ReactiveVeoVideoClient reactiveClient) {
         this.reactiveClient = reactiveClient;
     }
     

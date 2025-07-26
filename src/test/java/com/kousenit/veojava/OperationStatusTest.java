@@ -1,5 +1,6 @@
 package com.kousenit.veojava;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
 public class OperationStatusTest {
     
+    @Disabled("Disabled to prevent accidental API calls - enable manually for operation status checking")
     @ParameterizedTest
     @ValueSource(strings = {
         "models/veo-3.0-generate-preview/operations/example-operation-id"

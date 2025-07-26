@@ -6,6 +6,7 @@ import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -58,5 +59,18 @@ public final class SelfSchedulingPollingStrategy implements PollingStrategy {
     @Override
     public String getStrategyName() {
         return "SelfScheduling";
+    }
+    
+    @PreDestroy
+    public void shutdown() {
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

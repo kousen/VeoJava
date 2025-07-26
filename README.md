@@ -180,6 +180,13 @@ Run tests:
 
 **Note**: Integration tests are disabled by default (using `@Disabled`) to prevent accidental API costs. Each test video costs ~$6 and takes several minutes to generate.
 
+**Test Coverage**: The project includes comprehensive unit tests covering:
+- Service layer with mocked clients using `@MockitoBean` (Spring Boot 3.4+)
+- REST controller endpoints with proper async testing patterns
+- All polling strategies with business logic validation
+- Input validation with Bean Validation (`@Valid`, `@NotBlank`)
+- Resource cleanup patterns with `@PreDestroy` methods
+
 ## Build and Run
 
 Build the project:
@@ -207,9 +214,12 @@ This project demonstrates several key Java/Spring patterns:
 - **Polling Strategy Analysis**: Comprehensive comparison of non-busy-waiting approaches
 - **Record-Based Data Models**: All DTOs in a single `VeoJavaRecords` class for easy static imports
 - **Modern Java Features**: Sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers (Java 22+)
-- **Configuration Properties**: Type-safe configuration with `@ConfigurationProperties`
-- **Polling Strategies**: Different approaches to handle long-running operations
+- **Configuration Properties**: Type-safe configuration with `@ConfigurationProperties` and proper Spring Boot 3.4+ patterns
+- **Polling Strategies**: Different approaches to handle long-running operations with proper resource cleanup
 - **Error Handling**: Comprehensive error handling across sync and async flows
+- **Resource Management**: Proper `@PreDestroy` cleanup for `ScheduledExecutorService` instances to prevent memory leaks
+- **Input Validation**: Bean Validation with `@Valid` and `@NotBlank` annotations
+- **Testing Patterns**: Modern Spring Boot testing with `@MockitoBean`, async controller testing, and cost-protection measures
 
 ## YouTube Tutorial
 

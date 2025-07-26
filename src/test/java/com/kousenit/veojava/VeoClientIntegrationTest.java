@@ -42,7 +42,7 @@ class VeoClientIntegrationTest {
     // Note: These tests require actual API calls and take several minutes
     // They are disabled by default to prevent accidental quota/cost consumption
     
-    //@Disabled("Requires actual API calls - costs ~$6 per test and takes several minutes")
+    @Disabled("Requires actual API calls - costs ~$6 per test and takes several minutes")
     @Test
     void testRestClientVideoGeneration() throws Exception {
         String prompt = """
@@ -51,7 +51,7 @@ class VeoClientIntegrationTest {
                 fly by.
                 """;
         CompletableFuture<String> future = videoService.generateAndSaveVideo(
-                prompt, "restclient", "./test_videos"
+                prompt, "restclient", "./videos"
         );
         
         String filePath = future.get(15, TimeUnit.MINUTES);
@@ -64,7 +64,7 @@ class VeoClientIntegrationTest {
     void testHttpClientVideoGeneration() throws Exception {
         String prompt = "A simple test animation";
         CompletableFuture<String> future = videoService.generateAndSaveVideo(
-                prompt, "httpclient", "./test_videos"
+                prompt, "httpclient", "./videos"
         );
         
         String filePath = future.get(15, TimeUnit.MINUTES);

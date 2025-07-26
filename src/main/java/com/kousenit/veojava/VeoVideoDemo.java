@@ -177,7 +177,7 @@ public class VeoVideoDemo {
     }
     
     private static String saveVideo(VideoResult result, String prefix) throws IOException {
-        String outputDir = "./demo_videos";
+        String outputDir = "./videos";
         Files.createDirectories(Paths.get(outputDir));
         
         String filename = prefix + System.currentTimeMillis() + 

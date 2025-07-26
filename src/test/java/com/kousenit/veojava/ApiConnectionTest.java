@@ -1,5 +1,6 @@
 package com.kousenit.veojava;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
 public class ApiConnectionTest {
     
+    @Disabled("Disabled to prevent accidental API calls - enable manually for connectivity testing")
     @Test
     void testApiConnection() throws IOException, InterruptedException {
         String apiKey = System.getenv("GOOGLEAI_API_KEY");

@@ -20,7 +20,9 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -382,7 +382,9 @@ private static final ExecutorService virtualExecutor =
 
 **"Third, implement proper timeouts. Video generation can take up to 5 minutes, so set your timeouts accordingly."**
 
-**"Fourth, remember the cost—each video costs about 6 dollars. Implement rate limiting and user quotas."**
+**"Fourth, implement proper resource cleanup with @PreDestroy methods for any ScheduledExecutorService instances to prevent memory leaks when your Spring application shuts down."**
+
+**"Fifth, remember the cost—each video costs about 6 dollars. Implement rate limiting and user quotas."**
 
 **"Finally, the API has content filters. Generic prompts work better than specific celebrity or brand references."**
 
@@ -392,7 +394,7 @@ private static final ExecutorService virtualExecutor =
 
 [SCREEN: GitHub repository]
 
-**"The complete code for all five approaches is available in my VeoJava repository on GitHub. The link is in the description, along with setup instructions and integration tests you can run yourself—just remember each test costs 6 dollars!"**
+**"The complete code for all five approaches is available in my VeoJava repository on GitHub. The link is in the description, along with setup instructions and integration tests (disabled by default to prevent accidental costs—enable manually if you want to test with real API calls for 6 dollars each)!"**
 
 **"Which approach will you use in your projects? Let me know in the comments. If you found this helpful, subscribe for more Java AI integration tutorials, and if you want to see a specific AI API integration, drop a suggestion below."**
 

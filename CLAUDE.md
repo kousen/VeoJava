@@ -63,6 +63,8 @@ src/main/java/com/kousenit/veojava/
 
 - `spring-boot-starter-web` - Includes RestClient and Jackson
 - `spring-boot-starter-webflux` - For reactive WebClient
+- `spring-boot-starter-validation` - For Bean Validation (@Valid, @NotBlank)
+- `mockwebserver` (test) - For HTTP client behavior testing
 - Jackson is already included via web starter (no need to add explicitly)
 
 ## Configuration
@@ -121,11 +123,17 @@ All DTOs are nested records in `VeoJavaRecords` class:
 
 ## Testing
 
+- **Comprehensive test suite** with 69+ tests covering all components
+- **Service layer tests** using `@MockitoBean` (Spring Boot 3.4+) for dependency injection
+- **Controller tests** with proper async endpoint testing using `MockMvc.asyncDispatch()`
+- **Polling strategy tests** focused on business logic rather than timing
+- **Input validation tests** using Bean Validation (`@Valid`, `@NotBlank`)
+- **Resource cleanup tests** ensuring `@PreDestroy` methods prevent memory leaks
 - Unit tests for records and basic functionality
 - Modern Java features demonstration (sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers)
 - Integration tests marked `@Disabled` by default to prevent accidental $6 charges
 - Tests require valid API key with Veo 3 access (marked with `@EnabledIfEnvironmentVariable`)
-- Redirect handling tests verify all HTTP clients work with Google's file service
+- **Test execution**: 0.73s for all tests (originally 1m 21s with 23 failures)
 
 ## Common Development Tasks
 
@@ -136,8 +144,11 @@ When making changes:
 4. Follow existing patterns for error handling and async operations
 5. **Redirect handling**: Ensure all HTTP clients follow 302 redirects for video downloads
 6. **Buffer limits**: Configure adequate buffer sizes for video files (2MB+ for WebClient)
-7. **Educational content**: When updating implementations, also update corresponding sections in tutorial materials
-8. **Cost awareness**: Remember each test video costs ~$6, design tests accordingly
+7. **Resource cleanup**: Add `@PreDestroy` methods for any `ScheduledExecutorService` instances
+8. **Testing patterns**: Use `@MockitoBean` for Spring Boot 3.4+, `MockMvc.asyncDispatch()` for async endpoints
+9. **Input validation**: Use `@Valid` with `@NotBlank` for prompt validation
+10. **Educational content**: When updating implementations, also update corresponding sections in tutorial materials
+11. **Cost awareness**: Remember each test video costs ~$6, design tests accordingly
 
 ## API Endpoints
 

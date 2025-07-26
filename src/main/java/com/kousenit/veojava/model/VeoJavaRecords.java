@@ -2,13 +2,14 @@ package com.kousenit.veojava.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
 public class VeoJavaRecords {
 
     // Simple request DTO for REST endpoints
-    public record VideoPromptRequest(String prompt) {}
+    public record VideoPromptRequest(@NotBlank(message = "Prompt cannot be null or empty") String prompt) {}
 
     public record VideoGenerationRequest(
             List<Instance> instances,

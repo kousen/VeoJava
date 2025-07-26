@@ -5,6 +5,7 @@ import com.kousenit.veojava.model.VeoJavaRecords.VideoPromptRequest;
 import com.kousenit.veojava.service.VideoGenerationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -22,9 +23,9 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/rest-client")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithRestClient(@RequestBody VideoPromptRequest request) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithRestClient(@Valid @RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "restclient", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "restclient", config.getOutput().directory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
                             "strategy", "RestClient",
@@ -45,9 +46,9 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/http-client")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithHttpClient(@RequestBody VideoPromptRequest request) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithHttpClient(@Valid @RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "httpclient", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "httpclient", config.getOutput().directory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
                             "strategy", "HttpClient",
@@ -68,9 +69,9 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/self-scheduling")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithSelfScheduling(@RequestBody VideoPromptRequest request) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithSelfScheduling(@Valid @RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "selfscheduling", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "selfscheduling", config.getOutput().directory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
                             "strategy", "SelfScheduling",
@@ -91,9 +92,9 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/fixed-rate")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithFixedRate(@RequestBody VideoPromptRequest request) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithFixedRate(@Valid @RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "fixedrate", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "fixedrate", config.getOutput().directory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
                             "strategy", "FixedRate",
@@ -114,9 +115,9 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/reactive")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithReactive(@RequestBody VideoPromptRequest request) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithReactive(@Valid @RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "reactive", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "reactive", config.getOutput().directory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
                             "strategy", "Reactive",
@@ -137,9 +138,9 @@ public class VideoGenerationController {
     }
     
     @PostMapping("/generate/virtual-thread")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithVirtualThread(@RequestBody VideoPromptRequest request) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> generateWithVirtualThread(@Valid @RequestBody VideoPromptRequest request) {
         String prompt = request.prompt();
-        return videoService.generateAndSaveVideo(prompt, "virtualthread", config.getOutput().getDirectory())
+        return videoService.generateAndSaveVideo(prompt, "virtualthread", config.getOutput().directory())
                 .thenApply(filePath -> {
                     Map<String, Object> resultMap = Map.of(
                             "strategy", "VirtualThread",
@@ -175,9 +176,9 @@ public class VideoGenerationController {
                         "VirtualThread", "/api/video/generate/virtual-thread"
                 ),
                 "configuration", Map.of(
-                        "outputDirectory", config.getOutput().getDirectory(),
-                        "pollingInterval", config.getPolling().getIntervalSeconds() + "s",
-                        "maxTimeout", config.getPolling().getMaxTimeoutMinutes() + "m"
+                        "outputDirectory", config.getOutput().directory(),
+                        "pollingInterval", config.getPolling().intervalSeconds() + "s",
+                        "maxTimeout", config.getPolling().maxTimeoutMinutes() + "m"
                 )
         ));
     }

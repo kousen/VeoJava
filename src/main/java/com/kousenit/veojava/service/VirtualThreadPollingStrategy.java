@@ -7,10 +7,12 @@ import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public final class VirtualThreadPollingStrategy implements PollingStrategy {
@@ -50,5 +52,18 @@ public final class VirtualThreadPollingStrategy implements PollingStrategy {
     @Override
     public String getStrategyName() {
         return "VirtualThread";
+    }
+    
+    @PreDestroy
+    public void shutdown() {
+        virtualExecutor.shutdown();
+        try {
+            if (!virtualExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                virtualExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            virtualExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }
