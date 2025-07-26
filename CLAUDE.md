@@ -8,7 +8,7 @@ This file contains important context for Claude Code to understand this project 
 
 ## Key Requirements & Constraints
 
-- **Java 24+** with Gradle build system
+- **Java 22+** with Gradle build system (Java 21+ for most features, Java 22+ for unnamed variables)
 - **API Key**: Requires `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` environment variable
 - **Veo 3 Access**: Controlled access API requiring approval from Google
 - **Record Organization**: All DTOs are in a single `VeoJavaRecords` class for easy static imports

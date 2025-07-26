@@ -42,6 +42,12 @@ videos/
 demo_videos/
 test_videos/
 
+# Video files anywhere in project (extra safety)
+*.mp4
+*.mov
+*.avi
+*.mkv
+
 # OS
 .DS_Store
 Thumbs.db

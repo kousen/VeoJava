@@ -27,7 +27,7 @@ This Spring Boot application demonstrates multiple approaches to integrate with 
 
 ## Prerequisites
 
-1. **Java 24** or later
+1. **Java 22** or later (Java 21+ for most features, Java 22+ for unnamed variables)
 2. **Gradle** (wrapper included)  
 3. **Gemini API Key** with **Veo 3 Access** — Set the `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` environment variable
    - Note: Veo 3 is in controlled access and may require approval from Google
