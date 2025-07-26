@@ -211,12 +211,33 @@ This project demonstrates several key Java/Spring patterns:
 - **Polling Strategies**: Different approaches to handle long-running operations
 - **Error Handling**: Comprehensive error handling across sync and async flows
 
+## YouTube Tutorial
+
+This project includes comprehensive educational content for Java developers:
+
+- **[script.md](script.md)** - Complete YouTube video script explaining all 5 polling strategies
+- **[polling-strategy-comparison.md](polling-strategy-comparison.md)** - Detailed comparison matrix with performance metrics and decision guidelines
+- **[mermaid-examples.md](mermaid-examples.md)** - Visual diagrams for presentations and documentation
+
+The tutorial covers the journey from naive busy-waiting to enterprise-grade async patterns, perfect for developers learning modern Java concurrency patterns.
+
 ## Additional Documentation
 
 - **[NETWORKING_STRATEGY_ANALYSIS.md](NETWORKING_STRATEGY_ANALYSIS.md)** - Comprehensive analysis of HTTP clients and polling strategies with recommendations
 - **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Detailed technical documentation about redirect handling, response structures, and API behavior discoveries
 - **[CLAUDE.md](CLAUDE.md)** - Development context and implementation decisions
 
+## Educational Value
+
+This project serves multiple purposes:
+
+1. **Production Example**: Real-world integration with Google's Veo 3 API including proper error handling, timeouts, and redirect management
+2. **Learning Resource**: Comprehensive comparison of 5 different polling strategies from naive blocking to advanced async patterns
+3. **Modern Java Showcase**: Demonstrates records, sealed interfaces, virtual threads (Java 21+), reactive streams, and other contemporary features
+4. **Performance Analysis**: Includes detailed metrics and recommendations for different concurrency approaches
+
 ## Contributing
 
 This is a demonstration project showing different Java approaches to REST API integration with async polling patterns. The implementation includes important discoveries about Google's Veo 3 API behavior, particularly around redirect handling and URL-based video delivery. Feel free to explore and adapt the patterns for your own use cases.
+
+The educational materials (script.md, comparison tables, diagrams) are designed to help other developers understand the trade-offs between different async programming approaches in Java.

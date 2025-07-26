@@ -136,6 +136,8 @@ When making changes:
 4. Follow existing patterns for error handling and async operations
 5. **Redirect handling**: Ensure all HTTP clients follow 302 redirects for video downloads
 6. **Buffer limits**: Configure adequate buffer sizes for video files (2MB+ for WebClient)
+7. **Educational content**: When updating implementations, also update corresponding sections in tutorial materials
+8. **Cost awareness**: Remember each test video costs ~$6, design tests accordingly
 
 ## API Endpoints
 
@@ -164,7 +166,7 @@ REST endpoints for testing all approaches:
 ## Key Insights
 
 ### Polling Strategy Comparison
-This project demonstrates **three alternatives to busy waiting** for long-running operations:
+This project demonstrates **four production-ready alternatives to busy waiting** for long-running operations:
 
 1. **ScheduledExecutorService + CompletableFuture** (2 variants):
    - `SelfSchedulingPollingStrategy`: Dynamic rate - reschedules after each check
@@ -174,15 +176,35 @@ This project demonstrates **three alternatives to busy waiting** for long-runnin
 
 3. **Virtual Threads**: Simple blocking code that scales efficiently (Java 21+)
 
+4. **Basic Async**: HttpClient/RestClient with CompletableFuture (good for simple cases)
+
 All approaches avoid CPU-wasting busy loops while providing different trade-offs in complexity, resource usage, and debugging ease.
 
-### Simplicity vs. Complexity
-While Python's approach to the same API is elegantly simple:
-```python
-while not operation.done:
-    time.sleep(20)
-    operation = client.operations.get(operation)
+### Decision Matrix for Developers
+| If You Have... | Use This Strategy |
+|---|---|
+| Java 8-20 + Simple needs | ScheduledExecutor |
+| Java 8-20 + High concurrency | Reactive Streams |
+| Java 21+ | Virtual Threads |
+| Existing reactive codebase | Reactive Streams |
+| Need simplest code | Virtual Threads |
+| Legacy constraints | ScheduledExecutor |
+
+### Educational Purpose: From Naive to Enterprise
+This project demonstrates the evolution from simple to sophisticated:
+
+**Naive Approach (Don't Use in Production)**:
+```java
+while (!status.done()) {
+    Thread.sleep(5000); // Blocks precious threads!
+    status = checkStatus(id);
+}
 ```
+
+**Enterprise Solutions**:
+1. **ScheduledExecutorService** - Non-blocking, resource-efficient
+2. **Reactive Streams** - Declarative, composable, high-concurrency
+3. **Virtual Threads** - Simple code, massive scalability (Java 21+)
 
 The Java implementations showcase enterprise-grade patterns suitable for:
 - Production web applications with concurrent requests
@@ -190,9 +212,23 @@ The Java implementations showcase enterprise-grade patterns suitable for:
 - Integration with Spring's ecosystem and observability tools
 - Library code for different deployment contexts
 
-## Additional Documentation
+### Performance Characteristics
+- **Busy Wait**: ~200 concurrent operations max
+- **ScheduledExecutor**: ~10,000 concurrent operations
+- **Reactive Streams**: ~100,000+ concurrent operations
+- **Virtual Threads**: ~1,000,000+ concurrent operations
 
+## Educational Content
+
+This project includes comprehensive tutorial materials for teaching Java async patterns:
+
+### YouTube Tutorial Materials
+- **[script.md](script.md)** - Complete 10-12 minute YouTube video script covering all 5 polling strategies
+- **[polling-strategy-comparison.md](polling-strategy-comparison.md)** - Detailed comparison matrix with performance metrics, complexity analysis, and decision guidelines
+- **[mermaid-examples.md](mermaid-examples.md)** - Professional diagrams including sequence flows, decision trees, and architecture overviews
+
+### Technical Documentation
 - **[NETWORKING_STRATEGY_ANALYSIS.md](NETWORKING_STRATEGY_ANALYSIS.md)** - Comprehensive analysis and recommendations for different approaches
 - **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Comprehensive technical documentation of API behavior, redirect handling, and response structure discoveries
 
-This project serves as a comprehensive example of different Java patterns for REST API integration with long-running operations, including important lessons about handling large media file delivery via URL-based downloads with redirect requirements.
+This project serves as both a working example of Google Veo 3 integration and a comprehensive educational resource for Java developers learning modern async patterns, from naive busy-waiting to enterprise-grade solutions using virtual threads and reactive streams.
