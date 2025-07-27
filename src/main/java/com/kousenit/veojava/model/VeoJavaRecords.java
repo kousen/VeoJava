@@ -83,11 +83,11 @@ public class VeoJavaRecords {
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
-            if (!(obj instanceof VideoResult that)) return false;
-            return Objects.equals(videoBase64, that.videoBase64) &&
-                   Objects.equals(mimeType, that.mimeType) &&
-                   Objects.equals(filename, that.filename) &&
-                   Arrays.equals(videoBytes, that.videoBytes);
+            if (!(obj instanceof VideoResult(var otherVideoBase64, var otherMimeType, var otherFilename, var otherVideoBytes))) return false;
+            return Objects.equals(videoBase64, otherVideoBase64) &&
+                   Objects.equals(mimeType, otherMimeType) &&
+                   Objects.equals(filename, otherFilename) &&
+                   Arrays.equals(videoBytes, otherVideoBytes);
         }
 
         @Override
