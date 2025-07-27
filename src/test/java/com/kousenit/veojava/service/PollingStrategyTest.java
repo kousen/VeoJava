@@ -7,14 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -29,7 +27,6 @@ class PollingStrategyTest {
     private VideoGenerationResponse testResponse;
     private VideoResult testVideoResult;
     private OperationStatus completedStatus;
-    private OperationStatus errorStatus;
 
     @BeforeEach
     void setUp() {
@@ -69,14 +66,6 @@ class PollingStrategyTest {
                 operationResponse,
                 Map.of()
         );
-        
-        errorStatus = new OperationStatus(
-                testResponse.operationId(),
-                true,
-                new OperationStatus.ErrorInfo(500, "Video generation failed", List.of()),
-                null,
-                Map.of()
-        );
     }
 
     @Test
@@ -113,17 +102,17 @@ class PollingStrategyTest {
     @Test
     void testSelfSchedulingPollingStrategy_InitializesSuccessfully() {
         // Test that the strategy can be created without throwing exceptions
-        assertDoesNotThrow(() -> new SelfSchedulingPollingStrategy());
+        assertDoesNotThrow(SelfSchedulingPollingStrategy::new);
     }
 
     @Test
     void testFixedRatePollingStrategy_InitializesSuccessfully() {
-        assertDoesNotThrow(() -> new FixedRatePollingStrategy());
+        assertDoesNotThrow(FixedRatePollingStrategy::new);
     }
 
     @Test
     void testVirtualThreadPollingStrategy_InitializesSuccessfully() {
-        assertDoesNotThrow(() -> new VirtualThreadPollingStrategy());
+        assertDoesNotThrow(VirtualThreadPollingStrategy::new);
     }
 
     @Test

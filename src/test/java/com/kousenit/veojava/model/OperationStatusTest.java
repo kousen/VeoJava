@@ -1,4 +1,4 @@
-package com.kousenit.veojava;
+package com.kousenit.veojava.model;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * To use: Replace the operation ID in the test with an actual operation from your API calls.
  */
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
-public class OperationStatusTest {
+class OperationStatusTest {
     
     private static final Logger logger = LoggerFactory.getLogger(OperationStatusTest.class);
     

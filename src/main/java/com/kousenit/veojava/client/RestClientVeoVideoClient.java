@@ -4,6 +4,7 @@ import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationResponse;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,8 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     private final RestClient restClient;
 
     // Constructor for Spring - uses property injection
-    public RestClientVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
+    @Autowired
+    public RestClientVeoVideoClient(@SuppressWarnings("SpringElInspection") @Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
         this.restClient = createRestClient(apiKey);
     }
     

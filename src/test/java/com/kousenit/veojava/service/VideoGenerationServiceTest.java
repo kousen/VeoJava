@@ -1,7 +1,8 @@
 package com.kousenit.veojava.service;
 
 import com.kousenit.veojava.client.VeoVideoClient;
-import com.kousenit.veojava.model.VeoJavaRecords.*;
+import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
+import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -13,8 +14,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -54,8 +53,6 @@ class VideoGenerationServiceTest {
     Path tempDir;
 
     private VideoResult mockVideoResult;
-    private VideoGenerationResponse mockResponse;
-    private OperationStatus mockCompletedStatus;
 
     @BeforeEach
     void setUp() {
@@ -66,32 +63,6 @@ class VideoGenerationServiceTest {
                 "video/mp4",
                 "test_video_123.mp4",
                 videoBytes
-        );
-
-        // Create mock response
-        mockResponse = new VideoGenerationResponse(
-                "operations/test-operation-123",
-                Map.of("status", "submitted")
-        );
-
-        // Create mock completed status
-        var videoRef = new OperationStatus.VideoReference("https://example.com/video.mp4");
-        var sample = new OperationStatus.GeneratedSample(videoRef);
-        var videoResponse = new OperationStatus.GenerateVideoResponse(
-                List.of(sample),
-                List.of()
-        );
-        var operationResponse = new OperationStatus.OperationResponse(
-                "type.googleapis.com/google.ai.generativelanguage.v1beta.PredictLongRunningResponse",
-                videoResponse
-        );
-        
-        mockCompletedStatus = new OperationStatus(
-                "operations/test-operation-123",
-                true,
-                null,
-                operationResponse,
-                Map.of()
         );
     }
 
@@ -352,7 +323,7 @@ class VideoGenerationServiceTest {
         ExecutionException exception = assertThrows(ExecutionException.class, () ->
                 future.get(5, TimeUnit.SECONDS)
         );
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         assertTrue(exception.getCause().getMessage().contains("Failed to save video file"));
     }
 }

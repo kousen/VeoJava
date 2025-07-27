@@ -1,4 +1,4 @@
-package com.kousenit.veojava;
+package com.kousenit.veojava.features;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;

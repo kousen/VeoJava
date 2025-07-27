@@ -61,7 +61,7 @@ public final class VirtualThreadPollingStrategy implements PollingStrategy {
             if (!virtualExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 virtualExecutor.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             virtualExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }

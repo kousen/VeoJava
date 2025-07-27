@@ -15,11 +15,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 @WebMvcTest(VideoGenerationController.class)
 class VideoGenerationControllerTest {
@@ -290,6 +290,7 @@ class VideoGenerationControllerTest {
                 .andExpect(jsonPath("$.timestamp", notNullValue()));
     }
 
+    @SuppressWarnings("JsonStandardCompliance")
     @Test
     void testInvalidRequestBody() throws Exception {
         // When & Then
@@ -340,7 +341,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(longPrompt), eq("restclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(longPrompt, "restclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -366,9 +367,9 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt1), eq("restclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt1, "restclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/video1.mp4"));
-        given(mockVideoService.generateAndSaveVideo(eq(prompt2), eq("httpclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt2, "httpclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/video2.mp4"));
 
         // When & Then - both requests should succeed
@@ -424,17 +425,17 @@ class VideoGenerationControllerTest {
         given(mockOutput.directory()).willReturn("./videos");
         
         // Mock all strategies
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("restclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "restclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/restclient.mp4"));
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("httpclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "httpclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/httpclient.mp4"));
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("selfscheduling"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "selfscheduling", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/selfscheduling.mp4"));
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("fixedrate"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "fixedrate", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/fixedrate.mp4"));
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("reactive"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "reactive", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/reactive.mp4"));
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("virtualthread"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "virtualthread", "./videos"))
                 .willReturn(CompletableFuture.completedFuture("/videos/virtualthread.mp4"));
 
         // Test all endpoints

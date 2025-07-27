@@ -70,6 +70,7 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
             return objectMapper.readValue(response.body(), VideoGenerationResponse.class);
             
         } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException("Failed to submit video generation", e);
         }
     }
@@ -100,6 +101,7 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
             return objectMapper.readValue(response.body(), OperationStatus.class);
             
         } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException("Failed to check operation status", e);
         }
     }
@@ -160,6 +162,7 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
             return new VideoResult(base64Video, mimeType, filename, videoBytes);
             
         } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException("Failed to download video", e);
         }
     }
