@@ -7,10 +7,7 @@ import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import java.util.concurrent.CompletableFuture;
 
 public sealed interface PollingStrategy 
-    permits SelfSchedulingPollingStrategy,
-        FixedRatePollingStrategy,
-        ReactivePollingStrategy,
-        VirtualThreadPollingStrategy {
+    permits SelfSchedulingPollingStrategy, FixedRatePollingStrategy, ReactivePollingStrategy, VirtualThreadPollingStrategy {
     
     CompletableFuture<VideoResult> generateVideo(VeoVideoClient client, VideoGenerationRequest request);
     
