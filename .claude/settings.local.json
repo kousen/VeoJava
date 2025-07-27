@@ -15,7 +15,8 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(env)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }
