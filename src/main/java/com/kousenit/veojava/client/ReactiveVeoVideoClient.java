@@ -113,7 +113,7 @@ public class ReactiveVeoVideoClient {
         // Clean reactive polling using Flux.interval - preferred approach for time-based operations.
         // This avoids exception-based control flow and clearly expresses the polling intent.
         return Flux.interval(Duration.ZERO, Duration.ofSeconds(5))
-                .flatMap(_ -> checkOperationStatus(operationId))
+                .flatMap(ignored -> checkOperationStatus(operationId))
                 .filter(OperationStatus::done)
                 .next()
                 .<String>handle((status, sink) -> {

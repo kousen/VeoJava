@@ -107,7 +107,13 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
     @Override
     public VideoResult downloadVideo(String operationId) {
         OperationStatus status = checkOperationStatus(operationId);
+        validateOperationStatus(status);
         
+        var videoUri = extractVideoUri(status);
+        return downloadVideoFromUri(videoUri, operationId);
+    }
+    
+    private void validateOperationStatus(OperationStatus status) {
         if (!status.done()) {
             throw new IllegalStateException("Operation not completed yet");
         }
@@ -115,8 +121,9 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
         if (status.error() != null) {
             throw new RuntimeException("Operation failed: " + status.error().message());
         }
-        
-        // Check the new response structure
+    }
+    
+    private String extractVideoUri(OperationStatus status) {
         if (!(status.response() instanceof OperationStatus.OperationResponse response) ||
             response.generateVideoResponse() == null ||
             response.generateVideoResponse().generatedSamples() == null ||
@@ -125,9 +132,10 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
         }
         
         var sample = response.generateVideoResponse().generatedSamples().getFirst();
-        var videoUri = sample.video().uri();
-        
-        // Download the video from the URI
+        return sample.video().uri();
+    }
+    
+    private VideoResult downloadVideoFromUri(String videoUri, String operationId) {
         try {
             HttpRequest downloadRequest = HttpRequest.newBuilder()
                     .uri(URI.create(videoUri))

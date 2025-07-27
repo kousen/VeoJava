@@ -84,7 +84,13 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     @Override
     public VideoResult downloadVideo(String operationId) {
         OperationStatus status = checkOperationStatus(operationId);
+        validateOperationStatus(status);
         
+        var videoUri = extractVideoUri(status);
+        return downloadVideoFromUri(videoUri, operationId);
+    }
+    
+    private void validateOperationStatus(OperationStatus status) {
         if (!status.done()) {
             throw new IllegalStateException("Operation not completed yet");
         }
@@ -92,8 +98,9 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
         if (status.error() != null) {
             throw new RuntimeException("Operation failed: " + status.error().message());
         }
-        
-        // Check the new response structure
+    }
+    
+    private String extractVideoUri(OperationStatus status) {
         if (!(status.response() instanceof OperationStatus.OperationResponse response) ||
             response.generateVideoResponse() == null ||
             response.generateVideoResponse().generatedSamples() == null ||
@@ -102,9 +109,10 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
         }
         
         var sample = response.generateVideoResponse().generatedSamples().getFirst();
-        var videoUri = sample.video().uri();
-        
-        // Download the video from the URI using RestClient
+        return sample.video().uri();
+    }
+    
+    private VideoResult downloadVideoFromUri(String videoUri, String operationId) {
         byte[] videoBytes = restClient.get()
                 .uri(videoUri)
                 .retrieve()
