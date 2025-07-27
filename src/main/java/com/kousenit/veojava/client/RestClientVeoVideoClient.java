@@ -18,6 +18,8 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     private static final String GENERATE_ENDPOINT = "/models/veo-3.0-generate-preview:predictLongRunning";
     private static final String OPERATION_ENDPOINT = "/operations/";
+    private static final String CONTENT_TYPE_JSON = "application/json";
+    private static final String API_KEY_HEADER = "x-goog-api-key";
     
     private final RestClient restClient;
 
@@ -52,8 +54,8 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
         return RestClient.builder()
                 .baseUrl(BASE_URL)
                 .requestFactory(requestFactory)
-                .defaultHeader("x-goog-api-key", apiKey)
-                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader(API_KEY_HEADER, apiKey)
+                .defaultHeader("Content-Type", CONTENT_TYPE_JSON)
                 .build();
     }
     

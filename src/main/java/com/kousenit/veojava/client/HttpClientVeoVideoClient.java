@@ -21,6 +21,8 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     private static final String GENERATE_ENDPOINT = "/models/veo-3.0-generate-preview:predictLongRunning";
     private static final String OPERATION_ENDPOINT = "/operations/";
+    private static final String CONTENT_TYPE_JSON = "application/json";
+    private static final String API_KEY_HEADER = "x-goog-api-key";
     
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -52,8 +54,8 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
             
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + GENERATE_ENDPOINT))
-                    .header("x-goog-api-key", apiKey)
-                    .header("Content-Type", "application/json")
+                    .header(API_KEY_HEADER, apiKey)
+                    .header("Content-Type", CONTENT_TYPE_JSON)
                     .timeout(Duration.ofMinutes(2))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
@@ -82,8 +84,8 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
                     
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("x-goog-api-key", apiKey)
-                    .header("Content-Type", "application/json")
+                    .header(API_KEY_HEADER, apiKey)
+                    .header("Content-Type", CONTENT_TYPE_JSON)
                     .timeout(Duration.ofSeconds(30))
                     .GET()
                     .build();
@@ -129,7 +131,7 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
         try {
             HttpRequest downloadRequest = HttpRequest.newBuilder()
                     .uri(URI.create(videoUri))
-                    .header("x-goog-api-key", apiKey)
+                    .header(API_KEY_HEADER, apiKey)
                     .timeout(Duration.ofMinutes(5))
                     .GET()
                     .build();

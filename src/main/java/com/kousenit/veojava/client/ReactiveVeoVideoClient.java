@@ -21,6 +21,8 @@ public class ReactiveVeoVideoClient {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     private static final String GENERATE_ENDPOINT = "/models/veo-3.0-generate-preview:predictLongRunning";
     private static final String OPERATION_ENDPOINT = "/operations/";
+    private static final String CONTENT_TYPE_JSON = "application/json";
+    private static final String API_KEY_HEADER = "x-goog-api-key";
     
     private final WebClient webClient;
     
@@ -33,8 +35,8 @@ public class ReactiveVeoVideoClient {
                 .baseUrl(BASE_URL)
                 .clientConnector(connector)
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024)) // 2MB buffer
-                .defaultHeader("x-goog-api-key", apiKey)
-                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader(API_KEY_HEADER, apiKey)
+                .defaultHeader("Content-Type", CONTENT_TYPE_JSON)
                 .build();
     }
     
