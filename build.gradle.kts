@@ -56,7 +56,7 @@ tasks.jacocoTestCoverageVerification {
 // SonarQube configuration
 sonarqube {
     properties {
-        property("sonar.projectKey", "kousen-it-inc_VeoJava")
+        property("sonar.projectKey", "kousen_VeoJava")
         property("sonar.organization", "kousen-it-inc")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.java.coveragePlugin", "jacoco")

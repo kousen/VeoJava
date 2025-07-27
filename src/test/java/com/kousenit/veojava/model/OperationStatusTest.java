@@ -8,6 +8,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -23,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
 public class OperationStatusTest {
+    
+    private static final Logger logger = LoggerFactory.getLogger(OperationStatusTest.class);
     
     @Disabled("Disabled to prevent accidental API calls - enable manually for operation status checking")
     @ParameterizedTest
@@ -50,12 +54,12 @@ public class OperationStatusTest {
                     .GET()
                     .build();
             
-            System.out.println("🔍 Checking operation: " + operationName);
+            logger.info("🔍 Checking operation: {}", operationName);
             
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             
-            System.out.println("📡 Response Status: " + response.statusCode());
-            System.out.println("📋 Response Body: " + response.body());
+            logger.info("📡 Response Status: {}", response.statusCode());
+            logger.info("📋 Response Body: {}", response.body());
             
             // Basic assertions
             assertTrue(response.statusCode() == 200 || response.statusCode() == 404, 
@@ -65,9 +69,9 @@ public class OperationStatusTest {
             if (response.statusCode() == 200) {
                 assertTrue(response.body().contains("\"name\""), 
                         "Successful response should contain operation name");
-                System.out.println("✅ Operation found and status retrieved");
+                logger.info("✅ Operation found and status retrieved");
             } else {
-                System.out.println("❌ Operation not found (may have expired)");
+                logger.warn("❌ Operation not found (may have expired)");
             }
         }
     }
@@ -82,6 +86,6 @@ public class OperationStatusTest {
         assertEquals("https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview/operations/test123", 
                 expectedUrl);
         
-        System.out.println("✅ URL format validation passed");
+        logger.info("✅ URL format validation passed");
     }
 }

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.IOException;
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -19,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".+")
 public class ApiConnectionTest {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ApiConnectionTest.class);
     
     @Disabled("Disabled to prevent accidental API calls - enable manually for connectivity testing")
     @Test
@@ -54,13 +58,13 @@ public class ApiConnectionTest {
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
             
-            System.out.println("🔗 Testing connectivity to: " + baseUrl + endpoint);
-            System.out.println("🔑 API Key present: " + (apiKey.length() > 10 ? "Yes" : "No"));
+            logger.info("🔗 Testing connectivity to: {}", baseUrl + endpoint);
+            logger.info("🔑 API Key present: {}", (apiKey.length() > 10 ? "Yes" : "No"));
             
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             
-            System.out.println("📡 Response Status: " + response.statusCode());
-            System.out.println("📋 Response Body: " + response.body());
+            logger.info("📡 Response Status: {}", response.statusCode());
+            logger.info("📋 Response Body: {}", response.body());
             
             // Basic assertions
             assertTrue(response.statusCode() >= 200 && response.statusCode() < 300, 
