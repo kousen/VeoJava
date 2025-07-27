@@ -42,6 +42,11 @@ tasks.jacocoTestReport {
     }
 }
 
+// Ensure sonar task runs after JaCoCo report is generated
+tasks.named("sonar") {
+    dependsOn(tasks.jacocoTestReport)
+}
+
 // Optional: Set minimum coverage thresholds
 tasks.jacocoTestCoverageVerification {
     violationRules {
@@ -59,8 +64,18 @@ sonarqube {
         property("sonar.projectKey", "kousen_VeoJava")
         property("sonar.organization", "kousen-it-inc")
         property("sonar.host.url", "https://sonarcloud.io")
+        
+        // Coverage configuration
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.junit.reportPaths", "build/test-results/test")
+        
+        // Source and test directories
+        property("sonar.sources", "src/main/java")
+        property("sonar.tests", "src/test/java")
+        
+        // Exclusions
         property("sonar.exclusions", "**/VeoVideoDemo.java")  // Exclude demo class from coverage requirements
         property("sonar.test.exclusions", "**/integration/**")  // Exclude integration tests from coverage
+        property("sonar.coverage.exclusions", "**/VeoVideoDemo.java,**/integration/**")  // Also exclude from coverage
     }
 }
