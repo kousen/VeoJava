@@ -86,7 +86,5 @@ sonarqube {
         property("sonar.issue.ignore.multicriteria.e2.resourceKey", "**/*.java")
         property("sonar.issue.ignore.multicriteria.e3.ruleKey", "java:S1192") // String literal duplication - often false positives
         property("sonar.issue.ignore.multicriteria.e3.resourceKey", "**/*.java")
-        property("sonar.issue.ignore.multicriteria.e4.ruleKey", "java:S6068") // Mockito argument matchers usage
-        property("sonar.issue.ignore.multicriteria.e4.resourceKey", "**/*Test.java")
     }
 }

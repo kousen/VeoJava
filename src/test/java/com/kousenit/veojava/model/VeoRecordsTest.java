@@ -1,4 +1,4 @@
-package com.kousenit.veojava;
+package com.kousenit.veojava.model;
 
 import com.kousenit.veojava.model.VeoJavaRecords.*;
 import org.junit.jupiter.api.Test;
