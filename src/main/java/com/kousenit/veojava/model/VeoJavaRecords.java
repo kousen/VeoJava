@@ -3,8 +3,10 @@ package com.kousenit.veojava.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.NotBlank;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class VeoJavaRecords {
 
@@ -77,7 +79,28 @@ public class VeoJavaRecords {
             String mimeType,
             String filename,
             byte[] videoBytes
-    ) {}
+    ) {
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof VideoResult that)) return false;
+            return Objects.equals(videoBase64, that.videoBase64) &&
+                   Objects.equals(mimeType, that.mimeType) &&
+                   Objects.equals(filename, that.filename) &&
+                   Arrays.equals(videoBytes, that.videoBytes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(videoBase64, mimeType, filename, Arrays.hashCode(videoBytes));
+        }
+
+        @Override
+        public String toString() {
+            return "VideoResult[videoBase64=%s, mimeType=%s, filename=%s, videoBytes=%d bytes]"
+                    .formatted(videoBase64, mimeType, filename, videoBytes.length);
+        }
+    }
 
     public record ErrorResponse(
             int code,
