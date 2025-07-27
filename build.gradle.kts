@@ -94,3 +94,4 @@ sonarqube {
         property("sonar.issue.ignore.multicriteria.e6.resourceKey", "**/*PollingStrategy*.java")
     }
 }
+
