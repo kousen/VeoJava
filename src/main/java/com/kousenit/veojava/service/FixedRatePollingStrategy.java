@@ -79,7 +79,7 @@ public final class FixedRatePollingStrategy implements PollingStrategy {
             if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
                 scheduler.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             scheduler.shutdownNow();
             Thread.currentThread().interrupt();
         }
