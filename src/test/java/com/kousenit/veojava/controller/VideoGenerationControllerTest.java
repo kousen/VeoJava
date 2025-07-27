@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,7 +50,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("restclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "restclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -79,7 +78,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("httpclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "httpclient", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -106,7 +105,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("selfscheduling"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "selfscheduling", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -133,7 +132,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("fixedrate"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "fixedrate", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -160,7 +159,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("reactive"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "reactive", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -187,7 +186,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("virtualthread"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "virtualthread", "./videos"))
                 .willReturn(CompletableFuture.completedFuture(expectedFilePath));
 
         // When & Then
@@ -213,7 +212,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("restclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "restclient", "./videos"))
                 .willReturn(CompletableFuture.failedFuture(new RuntimeException("Video generation failed")));
 
         // When & Then
@@ -238,7 +237,7 @@ class VideoGenerationControllerTest {
         
         given(mockConfig.getOutput()).willReturn(mockOutput);
         given(mockOutput.directory()).willReturn("./videos");
-        given(mockVideoService.generateAndSaveVideo(eq(prompt), eq("httpclient"), eq("./videos")))
+        given(mockVideoService.generateAndSaveVideo(prompt, "httpclient", "./videos"))
                 .willReturn(CompletableFuture.failedFuture(new RuntimeException("HTTP client error")));
 
         // When & Then
