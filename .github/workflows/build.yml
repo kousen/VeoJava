@@ -40,4 +40,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GEMINI_API_KEY: "test-key-for-ci"  # Dummy key to allow Spring context to start
         run: ./gradlew build jacocoTestReport sonarqube --info
