@@ -59,7 +59,8 @@ sonarqube {
         property("sonar.projectKey", "kousen_VeoJava")
         property("sonar.organization", "kousen-it-inc")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.java.coveragePlugin", "jacoco")
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.exclusions", "**/VeoVideoDemo.java")  // Exclude demo class from coverage requirements
+        property("sonar.test.exclusions", "**/integration/**")  // Exclude integration tests from coverage
     }
 }
