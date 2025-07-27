@@ -14,7 +14,8 @@
       "Bash(git restore:*)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(open:*)"
     ],
     "deny": []
   }

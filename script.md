@@ -18,7 +18,7 @@
 
 [Show polling loop going crazy on screen]
 
-**"Today I'm going to show you five different Java approaches to solve this polling problem, from the naive Python-style approach that will destroy your server, to elegant reactive solutions using Spring WebFlux, virtual threads, and more. By the end, you'll know exactly which approach to use for your specific use case."**
+**"Today I'm going to show you five different Java approaches to solve this polling problem, from a simple blocking approach that works great for single requests, to elegant concurrent solutions using Spring WebFlux, virtual threads, and more. By the end, you'll know exactly which approach to use for your specific use case."**
 
 ---
 
@@ -73,25 +73,74 @@ sequenceDiagram
 }
 ```
 
-**"Now, the naive approach - and this is what most Python tutorials show - is a simple while loop with a sleep. Let me show you why this is problematic in Java."**
+**"Now, let's start with the most straightforward approach - a simple while loop with sleep. This is perfectly reasonable for single-use scripts or one-off requests. In fact, this is exactly what Google's official documentation recommends at ai.google.dev/gemini-api/docs/video. Here's their Python example:"**
+
+[SCREEN: Show Google's Python documentation at ai.google.dev]
+
+```python
+import time
+from google import genai
+
+client = genai.Client()
+operation = client.models.generate_videos(
+    model="veo-3.0-generate-preview", 
+    prompt=prompt
+)
+
+# Poll the operation status until the video is ready
+while not operation.done:
+    print("Waiting for video generation to complete...")
+    time.sleep(10)
+    operation = client.operations.get(operation)
+
+# Download the generated video
+generated_video = operation.response.generated_videos[0]
+client.files.download(file=generated_video.video)
+```
+
+**"This is clean, simple, and perfect for what it does. Google also provides examples in other languages on the same documentation page, including this REST/curl version:"**
+
+[SCREEN: Show Google's REST documentation section]
+
+```bash
+# Send request and capture operation name
+operation_name=$(curl -s "${BASE_URL}/models/veo-3.0-generate-preview:predictLongRunning" \
+  -H "x-goog-api-key: $GEMINI_API_KEY" \
+  -X "POST" -d '{"instances": [{"prompt": "..."}]}' | jq -r .name)
+
+# Poll until ready
+while true; do
+  status_response=$(curl -s -H "x-goog-api-key: $GEMINI_API_KEY" "${BASE_URL}/${operation_name}")
+  is_done=$(echo "${status_response}" | jq .done)
+  
+  if [ "${is_done}" = "true" ]; then
+    video_uri=$(echo "${status_response}" | jq -r '.response.generateVideoResponse.generatedSamples[0].video.uri')
+    curl -L -o video.mp4 -H "x-goog-api-key: $GEMINI_API_KEY" "${video_uri}"
+    break
+  fi
+  sleep 10
+done
+```
+
+**"Notice they're using the same exact pattern: submit, poll with sleep, download. This is the canonical approach across all languages. Now, normally the advantage of using Google's client libraries in Python or JavaScript is that they handle all the JSON mapping for you. But in this case, the request and response structures are quite simple, so Java records give us the same benefit. The real difference—and where Java shines—is in how we handle the networking and concurrency when we translate this pattern to web applications."**
 
 ---
 
-## The Naive Approach (2:00–3:30)
+## The Simple Blocking Approach (2:00–3:30)
 
-[SCREEN: VS Code showing bad polling code]
+[SCREEN: VS Code showing blocking polling code]
 
-**"Here's what a direct translation from Python would look like:"**
+**"Here's the most straightforward approach - exactly what you'd write in Python, Go, or any other language:"**
 
 ```java
-// DON'T DO THIS - Blocks threads and wastes resources
-public VideoResult generateVideoNaive(String prompt) {
+// Simple and clear - perfect for one-off requests
+public VideoResult generateVideoBlocking(String prompt) {
     VideoGenerationResponse response = submitRequest(prompt);
     String operationId = response.operationId();
     
     OperationStatus status;
     do {
-        Thread.sleep(5000); // Blocks the thread!
+        Thread.sleep(5000); // Blocks this thread
         status = checkStatus(operationId);
     } while (!status.done());
     
@@ -99,11 +148,11 @@ public VideoResult generateVideoNaive(String prompt) {
 }
 ```
 
-**"This might work in Python where you typically run one request at a time, but in a Java web application, this is a disaster. You're blocking precious threads from your thread pool. If you have a default Tomcat configuration with 200 threads, and 50 users try to generate videos simultaneously, you've just consumed 25% of your thread pool for 4 minutes each. Your application will become unresponsive."**
+**"This approach is beautifully simple and completely appropriate for standalone scripts, CLI tools, or one-off requests. The problem arises when you're building a web service in Java. You're blocking an OS thread from your web server's thread pool. If you have a default Tomcat configuration with 200 threads, and 50 users try to generate videos simultaneously, you've consumed 25% of your thread pool for 4 minutes each. Your application will become unresponsive to new requests."**
 
 [SCREEN: Show thread pool monitoring with threads stuck]
 
-**"Plus, this approach doesn't handle timeouts, cancellation, or error recovery gracefully. We need better solutions. Let me show you five different approaches that solve these problems."**
+**"Plus, this approach doesn't handle timeouts, cancellation, or error recovery gracefully. The real power of Java shines when you need to handle multiple concurrent requests efficiently. Let me show you five different approaches that leverage Java's concurrency strengths."**
 
 ---
 
@@ -140,7 +189,7 @@ private CompletableFuture<String> pollForCompletion(String operationId) {
 }
 ```
 
-**"This approach moves the blocking to a separate thread pool, which is better, but still not ideal. We're still blocking threads unnecessarily. The key improvement here is the HttpClient configuration for handling redirects:"**
+**"This approach moves the blocking to a separate thread pool, which is better for web applications since it doesn't tie up your main request-handling threads. We're still blocking threads, but at least they're dedicated worker threads. The key improvement here is the HttpClient configuration for handling redirects:"**
 
 ```java
 private final HttpClient httpClient = HttpClient.newBuilder()
@@ -186,7 +235,7 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
 }
 ```
 
-**"RestClient is Spring's modern replacement for RestTemplate, and it handles the redirect issue elegantly with proper request factory configuration. But we still haven't solved the fundamental polling problem—we're still blocking threads unnecessarily."**
+**"RestClient is Spring's modern replacement for RestTemplate, and it handles the redirect issue elegantly with proper request factory configuration. But we still haven't unlocked Java's full concurrency potential—we're still blocking threads when we could be doing so much more."**
 
 ---
 
@@ -194,7 +243,7 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
 
 [SCREEN: Show SelfSchedulingPollingStrategy.java]
 
-**"This is where we get into the proper enterprise solutions. Instead of blocking threads, we use ScheduledExecutorService to handle the polling asynchronously. I've implemented two variants:"**
+**"This is where Java really starts to shine for concurrent applications. Instead of blocking threads, we use ScheduledExecutorService to handle the polling asynchronously. This lets us handle hundreds of video requests concurrently with just a few threads. I've implemented two variants:"**
 
 **"First, the self-scheduling approach:"**
 
@@ -362,7 +411,7 @@ private static final ExecutorService virtualExecutor =
 
 **"For traditional Spring Boot applications, use the ScheduledExecutorService approaches. They give you the best balance of performance and maintainability on older Java versions."**
 
-**"Avoid the naive blocking approaches in production—they'll cause problems under load."**
+**"Avoid blocking approaches in high-concurrency web applications—they'll limit your scalability, but remember they're perfectly fine for standalone tools or single-request scenarios."**
 
 [SCREEN: Show demo running with performance metrics]
 
@@ -416,7 +465,7 @@ private static final ExecutorService virtualExecutor =
 
 ### Key Timestamps:
 - 0:00 Hook & Problem Introduction
-- 2:00 The Naive Approach (Don't Do This)
+- 2:00 The Simple Blocking Approach
 - 3:30 HttpClient + CompletableFuture
 - 5:00 Spring RestClient
 - 6:00 ScheduledExecutorService Strategies
@@ -426,7 +475,7 @@ private static final ExecutorService virtualExecutor =
 - 11:30 Production Gotchas
 
 ### SEO Description:
-Learn 5 different Java approaches for integrating with Google's Veo 3 text-to-video API, from basic HttpClient to advanced reactive patterns with Spring WebFlux and virtual threads. Includes complete code examples, performance comparisons, and production gotchas. Perfect for Java developers working with AI APIs.
+Learn 5 different Java approaches for integrating with Google's Veo 3 text-to-video API, from basic HttpClient to advanced reactive patterns with Spring WebFlux and virtual threads. Based on Google's official documentation at ai.google.dev, includes complete code examples, performance comparisons, and production gotchas. Perfect for Java developers working with AI APIs.
 
 ### Tags:
 java, AI, google-veo, text-to-video, spring-boot, webflux, virtual-threads, completablefuture, reactive-programming, api-integration, polling-strategies, async-programming
