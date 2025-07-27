@@ -3,8 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-22+-blue.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3+-green.svg)](https://spring.io/projects/spring-boot)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kousen-it-inc_VeoJava&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=kousen-it-inc_VeoJava)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=kousen-it-inc_VeoJava&metric=coverage)](https://sonarcloud.io/summary/new_code?id=kousen-it-inc_VeoJava)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kousen_VeoJava&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=kousen_VeoJava)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=kousen_VeoJava&metric=coverage)](https://sonarcloud.io/summary/new_code?id=kousen_VeoJava)
 [![Build and Analyze](https://github.com/kousen/VeoJava/actions/workflows/build.yml/badge.svg)](https://github.com/kousen/VeoJava/actions/workflows/build.yml)
 
 This Spring Boot application demonstrates multiple approaches to integrate with Google's Gemini Veo 3 video generation API from Java. The implementation is based on the REST API documented at https://ai.google.dev/gemini-api/docs/video (note that the official examples only show Python, JavaScript, and Go, but this project demonstrates Java integration patterns).
