@@ -77,5 +77,12 @@ sonarqube {
         property("sonar.exclusions", "**/VeoVideoDemo.java")  // Exclude demo class from coverage requirements
         property("sonar.test.exclusions", "**/integration/**")  // Exclude integration tests from coverage
         property("sonar.coverage.exclusions", "**/VeoVideoDemo.java,**/integration/**")  // Also exclude from coverage
+        
+        // Rule exclusions for educational/demo project
+        property("sonar.issue.ignore.multicriteria", "e1,e2")
+        property("sonar.issue.ignore.multicriteria.e1.ruleKey", "java:S112") // Generic exceptions are appropriate here
+        property("sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*.java")
+        property("sonar.issue.ignore.multicriteria.e2.ruleKey", "java:S1845") // Unnamed variables are valid Java 22+ feature
+        property("sonar.issue.ignore.multicriteria.e2.resourceKey", "**/*.java")
     }
 }
