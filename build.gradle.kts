@@ -88,10 +88,6 @@ sonarqube {
         property("sonar.issue.ignore.multicriteria.e3.resourceKey", "**/*.java")
         property("sonar.issue.ignore.multicriteria.e4.ruleKey", "java:S125") // Commented code - false positives on educational comments
         property("sonar.issue.ignore.multicriteria.e4.resourceKey", "**/*Test.java")
-//        property("sonar.issue.ignore.multicriteria.e5.ruleKey", "java:S1200") // Package cycles - false positive with sealed interfaces
-//        property("sonar.issue.ignore.multicriteria.e5.resourceKey", "**/service/*.java")
-//        property("sonar.issue.ignore.multicriteria.e6.ruleKey", "java:S1200") // Package cycles - also exclude by filename pattern
-//        property("sonar.issue.ignore.multicriteria.e6.resourceKey", "**/*PollingStrategy*.java")
     }
 }
 

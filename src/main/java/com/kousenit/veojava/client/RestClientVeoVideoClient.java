@@ -26,7 +26,9 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
 
     // Constructor for Spring - uses property injection
     @Autowired
-    public RestClientVeoVideoClient(@SuppressWarnings("SpringElInspection") @Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
+    public RestClientVeoVideoClient(
+            @SuppressWarnings("SpringElInspection")
+            @Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
         this.restClient = createRestClient(apiKey);
     }
     
