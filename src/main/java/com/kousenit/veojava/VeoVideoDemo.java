@@ -15,6 +15,7 @@ import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -101,9 +102,90 @@ public class VeoVideoDemo {
     }
     
     private static String getPrompt(Scanner scanner) {
-        logger.info("Enter video prompt (or press Enter for default)");
-        String input = scanner.nextLine().trim();
-        return input.isEmpty() ? "A cat playing with a ball of yarn in a sunny garden" : input;
+        String instructions = """
+            Enter video prompt (or press Enter for default).
+            For multi-line prompts:
+              - Type your prompt and press Enter to continue on a new line
+              - Type 'END' on a new line when finished
+              - Or just press Enter twice to finish
+            To load from file:
+              - Type 'FILE:' followed by the filename (e.g., FILE:prompt.txt)
+              - File path is relative to: %s
+            """.formatted(System.getProperty("user.dir"));
+        logger.info(instructions);
+        
+        StringBuilder promptBuilder = new StringBuilder();
+        String line;
+        boolean firstLine = true;
+        int emptyLineCount = 0;
+        
+        while ((line = scanner.nextLine()) != null) {
+            // Check for file input
+            if (firstLine && line.trim().toUpperCase().startsWith("FILE:")) {
+                String filename = line.trim().substring(5).trim();
+                try {
+                    Path filePath = Paths.get(filename);
+                    // Show absolute path for clarity
+                    Path absolutePath = filePath.toAbsolutePath();
+                    logger.info("Looking for file at: {}", absolutePath);
+                    
+                    if (!Files.exists(filePath)) {
+                        logger.error("File not found: {}", absolutePath);
+                        logger.info("Make sure the file exists at that location.");
+                        logger.info("You can use:");
+                        logger.info("  - Relative paths: FILE:prompts/my-prompt.txt");
+                        logger.info("  - Absolute paths: FILE:/Users/name/prompts/my-prompt.txt");
+                        logger.info("Please enter prompt manually:");
+                        continue;
+                    }
+                    
+                    String fileContent = Files.readString(filePath);
+                    logger.info("Successfully loaded prompt from: {}", filename);
+                    logger.info("Prompt preview: {}", 
+                        fileContent.length() > 100 ? 
+                        fileContent.substring(0, 100) + "..." : 
+                        fileContent);
+                    return fileContent.trim();
+                } catch (IOException e) {
+                    logger.error("Failed to read file '{}': {}", filename, e.getMessage());
+                    logger.info("Please enter prompt manually:");
+                    continue;
+                }
+            }
+            
+            // Check for explicit END marker
+            if (line.trim().equalsIgnoreCase("END")) {
+                break;
+            }
+            
+            // Check for double Enter (two consecutive empty lines)
+            if (line.trim().isEmpty()) {
+                emptyLineCount++;
+                // For first line, single Enter means use default
+                if (firstLine) {
+                    return "A cat playing with a ball of yarn in a sunny garden";
+                }
+                // Two consecutive empty lines means end of input
+                if (emptyLineCount >= 2) {
+                    break;
+                }
+                // Single empty line - just add a space to separate paragraphs
+                if (!promptBuilder.isEmpty()) {
+                    promptBuilder.append(" ");
+                }
+            } else {
+                emptyLineCount = 0;
+                // Add line to prompt
+                if (!firstLine && !promptBuilder.isEmpty()) {
+                    promptBuilder.append(" ");
+                }
+                promptBuilder.append(line.trim());
+            }
+            firstLine = false;
+        }
+        
+        String prompt = promptBuilder.toString().trim();
+        return prompt.isEmpty() ? "A cat playing with a ball of yarn in a sunny garden" : prompt;
     }
     
     private static void demoHttpClientApproach(String prompt) throws ExecutionException, InterruptedException, IOException {
