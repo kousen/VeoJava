@@ -23,11 +23,8 @@ tasks.withType<Test> {
     jvmArgs("--enable-preview")
 }
 
-// Configure bootRun to use the same toolchain and preview features
+// Enable preview features for bootRun task
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(24))
-    })
     jvmArgs("--enable-preview")
 }
 
