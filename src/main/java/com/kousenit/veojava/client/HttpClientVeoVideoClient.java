@@ -6,6 +6,8 @@ import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationResponse;
 import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,7 +21,7 @@ import java.util.Base64;
 public class HttpClientVeoVideoClient implements VeoVideoClient {
     
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
-    private static final String GENERATE_ENDPOINT = "/models/veo-3.0-generate-preview:predictLongRunning";
+    private final String generateEndpoint;
     private static final String OPERATION_ENDPOINT = "/operations/";
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final String API_KEY_HEADER = "x-goog-api-key";
@@ -28,16 +30,23 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
     private final ObjectMapper objectMapper;
     private final String apiKey;
     
+    // Default constructor for non-Spring usage (like demo)
     public HttpClientVeoVideoClient() {
-        // Try both common environment variable names
-        String key = System.getenv("GOOGLEAI_API_KEY");
-        if (key == null || key.isEmpty()) {
-            key = System.getenv("GEMINI_API_KEY");
-        }
-        if (key == null || key.isEmpty()) {
+        this(System.getenv("GOOGLEAI_API_KEY") != null ? System.getenv("GOOGLEAI_API_KEY") : System.getenv("GEMINI_API_KEY"),
+             "veo-3.0-fast-generate-preview");
+    }
+    
+    // Constructor for Spring injection
+    @Autowired
+    public HttpClientVeoVideoClient(
+            @SuppressWarnings("SpringElInspection")
+            @Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey, 
+            @Value("${veo.api.model:veo-3.0-fast-generate-preview}") String model) {
+        if (apiKey == null || apiKey.isEmpty()) {
             throw new IllegalArgumentException("GOOGLEAI_API_KEY or GEMINI_API_KEY environment variable is required");
         }
-        this.apiKey = key;
+        this.apiKey = apiKey;
+        this.generateEndpoint = "/models/" + model + ":predictLongRunning";
         
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
@@ -53,7 +62,7 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
             String requestBody = objectMapper.writeValueAsString(request);
             
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + GENERATE_ENDPOINT))
+                    .uri(URI.create(BASE_URL + generateEndpoint))
                     .header(API_KEY_HEADER, apiKey)
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .timeout(Duration.ofMinutes(2))
@@ -78,7 +87,7 @@ public class HttpClientVeoVideoClient implements VeoVideoClient {
     @Override
     public OperationStatus checkOperationStatus(String operationId) {
         try {
-            // operationId is actually the full operation name like "models/veo-3.0-generate-preview/operations/xyz"
+            // operationId is actually the full operation name like "models/veo-3.0-fast-generate-preview/operations/xyz"
             String url = operationId.startsWith("models/") ? 
                     BASE_URL + "/" + operationId : 
                     BASE_URL + OPERATION_ENDPOINT + operationId;

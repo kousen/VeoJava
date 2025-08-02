@@ -86,7 +86,7 @@ spring.mvc.async.request-timeout=600000
 
 ### API Integration
 - **Base URL**: `https://generativelanguage.googleapis.com/v1beta`
-- **Submit**: `/models/veo-3.0-generate-preview:predictLongRunning`
+- **Submit**: `/models/{model}:predictLongRunning` (configurable via `veo.api.model`, defaults to `veo-3.0-fast-generate-preview`)
 - **Poll**: `/operations/{operationId}`
 - **Authentication**: `x-goog-api-key` header
 
@@ -107,6 +107,11 @@ All DTOs are nested records in `VeoJavaRecords` class:
 - `VideoResult`
 
 **Updated**: Response structure changed to match actual Veo 3 API format with `generateVideoResponse.generatedSamples[].video.uri`
+
+### Model Selection
+- Default model: `veo-3.0-fast-generate-preview` (cheaper at $0.40/sec)
+- Alternative: `veo-3.0-generate-preview` (higher quality at $0.75/sec)
+- Configurable via `veo.api.model` property in `application.properties`
 
 ### Client Implementations
 1. **RestClientVeoVideoClient** — Spring RestClient with custom redirect handling via request factory
@@ -165,7 +170,7 @@ REST endpoints for testing all approaches:
 ## Known Limitations & Requirements
 
 - **Veo 3 API**: 8-second videos, 720p@24fps, English prompts only
-- **Cost**: $0.75/second (~$6 per 8-second video)
+- **Cost**: $0.40/second for fast preview model (~$3.20 per 8-second video), $0.75/second for standard model (~$6 per 8-second video)
 - **Access**: Controlled access requiring Google approval
 - **Redirect handling**: All HTTP clients must follow 302 redirects
 - **Buffer limits**: Videos (~635KB) exceed default WebClient buffers (256KB)

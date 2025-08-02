@@ -36,7 +36,7 @@ class PollingStrategyTest {
         testRequest = VideoGenerationRequest.of("Test video prompt");
         
         testResponse = new VideoGenerationResponse(
-                "models/veo-3.0-generate-preview/operations/test-operation-123",
+                "models/veo-3.0-fast-generate-preview/operations/test-operation-123",
                 Map.of("status", "submitted")
         );
         

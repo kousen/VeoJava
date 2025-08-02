@@ -26,7 +26,7 @@
 
 [SCREEN: Switch to presentation slide showing API flow diagram]
 
-**"Let's start with understanding what we're working with. Google's Veo 3 is a text-to-video generation model that creates 720p videos at 24 fps. Each 8-second video costs about 6 dollars—yes, you heard that right—so we want to get this implementation correct the first time."**
+**"Let's start with understanding what we're working with. Google's Veo 3 is a text-to-video generation model that creates 720p videos at 24 fps. With the fast preview model, each 8-second video costs about $3.20—compared to $6 for the standard model—so we want to get this implementation correct the first time."**
 
 [Show Mermaid diagram of the API flow]
 
@@ -59,7 +59,7 @@ sequenceDiagram
 
 ```json
 {
-  "name": "models/veo-3.0-generate-preview/operations/abc123",
+  "name": "models/veo-3.0-fast-generate-preview/operations/abc123",
   "done": true,
   "response": {
     "generateVideoResponse": {
@@ -83,7 +83,7 @@ from google import genai
 
 client = genai.Client()
 operation = client.models.generate_videos(
-    model="veo-3.0-generate-preview", 
+    model="veo-3.0-fast-generate-preview", 
     prompt=prompt
 )
 

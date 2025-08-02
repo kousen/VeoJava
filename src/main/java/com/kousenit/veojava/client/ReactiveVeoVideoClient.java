@@ -19,14 +19,16 @@ import java.util.Base64;
 public class ReactiveVeoVideoClient {
     
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
-    private static final String GENERATE_ENDPOINT = "/models/veo-3.0-generate-preview:predictLongRunning";
+    private final String generateEndpoint;
     private static final String OPERATION_ENDPOINT = "/operations/";
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final String API_KEY_HEADER = "x-goog-api-key";
     
     private final WebClient webClient;
     
-    public ReactiveVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
+    public ReactiveVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey,
+                                 @Value("${veo.api.model:veo-3.0-fast-generate-preview}") String model) {
+        this.generateEndpoint = "/models/" + model + ":predictLongRunning";
         // Configure HTTP client to follow redirects
         HttpClient httpClient = HttpClient.create().followRedirect(true);
         ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
@@ -42,14 +44,14 @@ public class ReactiveVeoVideoClient {
     
     public Mono<VideoGenerationResponse> submitVideoGeneration(VideoGenerationRequest request) {
         return webClient.post()
-                .uri(GENERATE_ENDPOINT)
+                .uri(generateEndpoint)
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(VideoGenerationResponse.class);
     }
     
     public Mono<OperationStatus> checkOperationStatus(String operationId) {
-        // operationId is actually the full operation name like "models/veo-3.0-generate-preview/operations/xyz"
+        // operationId is actually the full operation name like "models/veo-3.0-fast-generate-preview/operations/xyz"
         String uri = operationId.startsWith("models/") ? 
                 "/" + operationId : 
                 OPERATION_ENDPOINT + operationId;

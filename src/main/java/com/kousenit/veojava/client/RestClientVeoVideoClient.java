@@ -17,7 +17,7 @@ import java.util.Base64;
 public class RestClientVeoVideoClient implements VeoVideoClient {
     
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
-    private static final String GENERATE_ENDPOINT = "/models/veo-3.0-generate-preview:predictLongRunning";
+    private final String generateEndpoint;
     private static final String OPERATION_ENDPOINT = "/operations/";
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final String API_KEY_HEADER = "x-goog-api-key";
@@ -28,12 +28,15 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     @Autowired
     public RestClientVeoVideoClient(
             @SuppressWarnings("SpringElInspection")
-            @Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey) {
+            @Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey,
+            @Value("${veo.api.model:veo-3.0-fast-generate-preview}") String model) {
+        this.generateEndpoint = "/models/" + model + ":predictLongRunning";
         this.restClient = createRestClient(apiKey);
     }
     
     // Constructor for demo usage - checks both environment variables
     public RestClientVeoVideoClient() {
+        this.generateEndpoint = "/models/veo-3.0-fast-generate-preview:predictLongRunning";
         // Try both common environment variable names
         String key = System.getenv("GOOGLEAI_API_KEY");
         if (key == null || key.isEmpty()) {
@@ -66,7 +69,7 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     @Override
     public VideoGenerationResponse submitVideoGeneration(VideoGenerationRequest request) {
         return restClient.post()
-                .uri(GENERATE_ENDPOINT)
+                .uri(generateEndpoint)
                 .body(request)
                 .retrieve()
                 .body(VideoGenerationResponse.class);
@@ -74,7 +77,7 @@ public class RestClientVeoVideoClient implements VeoVideoClient {
     
     @Override
     public OperationStatus checkOperationStatus(String operationId) {
-        // operationId is actually the full operation name like "models/veo-3.0-generate-preview/operations/xyz"
+        // operationId is actually the full operation name like "models/veo-3.0-fast-generate-preview/operations/xyz"
         String uri = operationId.startsWith("models/") ? 
                 "/" + operationId : 
                 OPERATION_ENDPOINT + operationId;

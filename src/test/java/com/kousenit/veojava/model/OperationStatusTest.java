@@ -31,7 +31,7 @@ class OperationStatusTest {
     @Disabled("Disabled to prevent accidental API calls - enable manually for operation status checking")
     @ParameterizedTest
     @ValueSource(strings = {
-        "models/veo-3.0-generate-preview/operations/example-operation-id"
+        "models/veo-3.0-fast-generate-preview/operations/example-operation-id"
         // Add your actual operation IDs here for testing
     })
     void testOperationStatus(String operationName) throws IOException, InterruptedException {
@@ -80,10 +80,10 @@ class OperationStatusTest {
     void testOperationStatusUrlFormat() {
         // Test URL construction without making API calls
         String baseUrl = "https://generativelanguage.googleapis.com/v1beta";
-        String operationName = "models/veo-3.0-generate-preview/operations/test123";
+        String operationName = "models/veo-3.0-fast-generate-preview/operations/test123";
         String expectedUrl = baseUrl + "/" + operationName;
         
-        assertEquals("https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview/operations/test123", 
+        assertEquals("https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-fast-generate-preview/operations/test123", 
                 expectedUrl);
         
         logger.info("✅ URL format validation passed");

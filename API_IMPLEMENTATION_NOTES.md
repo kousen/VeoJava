@@ -4,6 +4,22 @@
 
 This document explains the implementation details and architectural decisions for the Java client library that interfaces with Google's Veo 3 video generation API. It covers the key findings discovered during development, including the actual API behavior versus expected patterns.
 
+## Available Models
+
+Google Veo 3 offers multiple model variants:
+
+1. **veo-3.0-fast-generate-preview** (Default)
+   - Cost: $0.40/second
+   - Faster generation time
+   - Suitable for rapid prototyping
+
+2. **veo-3.0-generate-preview**
+   - Cost: $0.75/second
+   - Higher quality output
+   - Suitable for production use
+
+The model can be configured via the `veo.api.model` property in `application.properties`.
+
 ## API Response Structure Discovery
 
 ### Expected vs. Actual Behavior
@@ -23,7 +39,7 @@ This document explains the implementation details and architectural decisions fo
 **What Veo 3 actually returns**:
 ```json
 {
-  "name": "models/veo-3.0-generate-preview/operations/abc123",
+  "name": "models/{model}/operations/abc123",
   "done": true,
   "response": {
     "@type": "type.googleapis.com/google.ai.generativelanguage.v1beta.PredictLongRunningResponse",
@@ -109,7 +125,7 @@ WebClient webClient = WebClient.builder()
 
 ### 1. Initial Request
 ```http
-POST https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview:predictLongRunning
+POST https://generativelanguage.googleapis.com/v1beta/models/{model}:predictLongRunning
 x-goog-api-key: YOUR_API_KEY
 Content-Type: application/json
 
@@ -127,20 +143,20 @@ Content-Type: application/json
 **Response**: Operation ID for polling
 ```json
 {
-  "name": "models/veo-3.0-generate-preview/operations/xyz123"
+  "name": "models/{model}/operations/xyz123"
 }
 ```
 
 ### 2. Status Polling
 ```http
-GET https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview/operations/xyz123
+GET https://generativelanguage.googleapis.com/v1beta/models/{model}/operations/xyz123
 x-goog-api-key: YOUR_API_KEY
 ```
 
 **Response (in progress)**:
 ```json
 {
-  "name": "models/veo-3.0-generate-preview/operations/xyz123",
+  "name": "models/{model}/operations/xyz123",
   "done": false,
   "metadata": { ... }
 }
@@ -149,7 +165,7 @@ x-goog-api-key: YOUR_API_KEY
 **Response (completed)**:
 ```json
 {
-  "name": "models/veo-3.0-generate-preview/operations/xyz123",
+  "name": "models/{model}/operations/xyz123",
   "done": true,
   "response": {
     "generateVideoResponse": {

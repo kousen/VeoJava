@@ -31,7 +31,7 @@ public class ApiConnectionTest {
         assertNotNull(apiKey, "GOOGLEAI_API_KEY environment variable must be set");
         
         String baseUrl = "https://generativelanguage.googleapis.com/v1beta";
-        String endpoint = "/models/veo-3.0-generate-preview:predictLongRunning";
+        String endpoint = "/models/veo-3.0-fast-generate-preview:predictLongRunning";
         
         String requestBody = """
             {
