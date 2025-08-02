@@ -24,6 +24,7 @@ public class VeoVideoDemo {
     
     private static final Logger logger = LoggerFactory.getLogger(VeoVideoDemo.class);
     
+    @SuppressWarnings("unused")
     public static void main(String[] args) {
         if (System.getenv("GEMINI_API_KEY") == null) {
             logger.error("GEMINI_API_KEY environment variable is not set!");
@@ -91,10 +92,12 @@ public class VeoVideoDemo {
         while (true) {
             try {
                 int choice = Integer.parseInt(scanner.nextLine().trim());
-                if (choice >= 0 && choice <= 5) {
-                    return choice;
+                switch (choice) {
+                    case 0, 1, 2, 3, 4, 5 -> {
+                        return choice;
+                    }
+                    default -> logger.warn("Invalid choice {}. Please enter 0-5", choice);
                 }
-                logger.warn("Invalid choice. Please enter 0-5");
             } catch (NumberFormatException e) {
                 logger.warn("Please enter a number (0-5)");
             }
@@ -130,12 +133,15 @@ public class VeoVideoDemo {
                     logger.info("Looking for file at: {}", absolutePath);
                     
                     if (!Files.exists(filePath)) {
-                        logger.error("File not found: {}", absolutePath);
-                        logger.info("Make sure the file exists at that location.");
-                        logger.info("You can use:");
-                        logger.info("  - Relative paths: FILE:prompts/my-prompt.txt");
-                        logger.info("  - Absolute paths: FILE:/Users/name/prompts/my-prompt.txt");
-                        logger.info("Please enter prompt manually:");
+                        String fileError = """
+                            File not found: %s
+                            Make sure the file exists at that location.
+                            You can use:
+                              - Relative paths: FILE:prompts/my-prompt.txt
+                              - Absolute paths: FILE:/Users/name/prompts/my-prompt.txt
+                            Please enter prompt manually:
+                            """.formatted(absolutePath);
+                        logger.error(fileError);
                         continue;
                     }
                     
@@ -147,8 +153,17 @@ public class VeoVideoDemo {
                         fileContent);
                     return fileContent.trim();
                 } catch (IOException e) {
-                    logger.error("Failed to read file '{}': {}", filename, e.getMessage());
-                    logger.info("Please enter prompt manually:");
+                    String errorType = switch (e) {
+                        case java.nio.file.NoSuchFileException _ -> "File not found";
+                        case java.nio.file.AccessDeniedException _ -> "Access denied";
+                        case java.io.FileNotFoundException _ -> "File not found";
+                        default -> "IO error";
+                    };
+                    String ioError = """
+                        %s reading file '%s': %s
+                        Please enter prompt manually:
+                        """.formatted(errorType, filename, e.getMessage());
+                    logger.error(ioError);
                     continue;
                 }
             }
@@ -274,10 +289,21 @@ public class VeoVideoDemo {
     }
     
     private static void logVideoSaved(String filename, int fileSize) {
-        logger.info("Video saved: {} (size: {} bytes)", filename, fileSize);
+        String formattedSize = formatFileSize(fileSize);
+        logger.info("Video saved: {} (size: {})", filename, formattedSize);
     }
     
     private static void logVideoSavedWithStrategy(String filename, int fileSize, String strategyName) {
-        logger.info("Video saved: {} (size: {} bytes, strategy: {})", filename, fileSize, strategyName);
+        String formattedSize = formatFileSize(fileSize);
+        logger.info("Video saved: {} (size: {}, strategy: {})", filename, formattedSize, strategyName);
+    }
+    
+    private static String formatFileSize(int bytes) {
+        return switch (bytes) {
+            case int b when b < 1024 -> b + " bytes";
+            case int b when b < 1024 * 1024 -> "%.1f KB".formatted(b / 1024.0);
+            case int b when b < 1024 * 1024 * 1024 -> "%.1f MB".formatted(b / (1024.0 * 1024));
+            default -> "%.1f GB".formatted(bytes / (1024.0 * 1024 * 1024));
+        };
     }
 }

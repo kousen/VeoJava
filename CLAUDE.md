@@ -8,7 +8,8 @@ This file contains important context for Claude Code to understand this project 
 
 ## Key Requirements & Constraints
 
-- **Java 22+** with Gradle build system (Java 21+ for most features, Java 22+ for unnamed variables)
+- **Java 24** with Gradle build system and preview features enabled
+- **Modern Java Features**: Primitive patterns, enhanced switch expressions, text blocks, pattern matching
 - **API Key**: Requires `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` environment variable
 - **Veo 3 Access**: Controlled access API requiring approval from Google
 - **Record Organization**: All DTOs are in a single `VeoJavaRecords` class for easy static imports
@@ -248,3 +249,7 @@ This project includes comprehensive tutorial materials for teaching Java async p
 - **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Comprehensive technical documentation of API behavior, redirect handling, and response structure discoveries
 
 This project serves as both a working example of Google Veo 3 integration and a comprehensive educational resource for Java developers learning modern async patterns, from naive busy-waiting to enterprise-grade solutions using virtual threads and reactive streams.
+
+## Modern Java Features
+
+This project showcases cutting-edge Java 24 features including primitive patterns, enhanced switch expressions, and advanced pattern matching. See **[MODERN_JAVA_FEATURES.md](MODERN_JAVA_FEATURES.md)** for a comprehensive guide to all modern Java features used in this project.
