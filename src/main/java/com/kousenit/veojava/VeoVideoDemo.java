@@ -153,16 +153,7 @@ public class VeoVideoDemo {
                         fileContent);
                     return fileContent.trim();
                 } catch (IOException e) {
-                    String errorType = switch (e) {
-                        case java.nio.file.NoSuchFileException _ -> "File not found";
-                        case java.nio.file.AccessDeniedException _ -> "Access denied";
-                        case java.io.FileNotFoundException _ -> "File not found";
-                        default -> "IO error";
-                    };
-                    String ioError = """
-                        %s reading file '%s': %s
-                        Please enter prompt manually:
-                        """.formatted(errorType, filename, e.getMessage());
+                    String ioError = formatFileReadError(e, filename);
                     logger.error(ioError);
                     continue;
                 }
@@ -305,5 +296,18 @@ public class VeoVideoDemo {
             case int b when b < 1024 * 1024 * 1024 -> "%.1f MB".formatted(b / (1024.0 * 1024));
             default -> "%.1f GB".formatted(bytes / (1024.0 * 1024 * 1024));
         };
+    }
+    
+    private static String formatFileReadError(IOException e, String filename) {
+        String errorType = switch (e) {
+            case java.nio.file.NoSuchFileException _ -> "File not found";
+            case java.nio.file.AccessDeniedException _ -> "Access denied";
+            case java.io.FileNotFoundException _ -> "File not found";
+            default -> "IO error";
+        };
+        return """
+            %s reading file '%s': %s
+            Please enter prompt manually:
+            """.formatted(errorType, filename, e.getMessage());
     }
 }
