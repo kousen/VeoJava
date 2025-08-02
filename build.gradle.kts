@@ -1,5 +1,5 @@
 plugins {
-    java
+    application
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
     jacoco
@@ -15,6 +15,10 @@ java {
     }
 }
 
+application {
+    mainClass.set("com.kousenit.veojava.VeoVideoDemo")
+}
+
 tasks.withType<JavaCompile> {
     options.compilerArgs.addAll(listOf("--enable-preview"))
 }
@@ -25,6 +29,11 @@ tasks.withType<Test> {
 
 // Enable preview features for bootRun task
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    jvmArgs("--enable-preview")
+}
+
+// Enable preview features for application plugin run task
+tasks.named<JavaExec>("run") {
     jvmArgs("--enable-preview")
 }
 
