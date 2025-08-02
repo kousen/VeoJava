@@ -30,9 +30,12 @@ public class VeoVideoDemo {
         }
         
         try (Scanner scanner = new Scanner(System.in)) {
-            logger.info("=== Veo 3 Video Generation Demo ===");
-            logger.warn("⚠️  WARNING: Each video costs ~$6.00 (8 seconds × $0.75/second)");
-            logger.info("This demo will only generate ONE video at a time.");
+            String header = """
+                === Veo 3 Video Generation Demo ===
+                ⚠️  WARNING: Each video costs ~$3.20 with fast preview model (8 seconds × $0.40/second)
+                This demo will only generate ONE video at a time.
+                """;
+            logger.info(header);
             
             while (true) {
                 showMenu();
@@ -45,9 +48,12 @@ public class VeoVideoDemo {
                 }
                 
                 String prompt = getPrompt(scanner);
-                logger.info("🎬 Generating video (this will take several minutes)...");
-                logger.warn("💰 Cost: ~$6.00");
-                logger.info("Prompt: {}", prompt);
+                String generationInfo = """
+                    🎬 Generating video (this will take several minutes)...
+                    💰 Cost: ~$3.20 with fast preview model
+                    Prompt: %s
+                    """.formatted(prompt);
+                logger.info(generationInfo);
                 
                 try {
                     switch (choice) {
@@ -68,13 +74,16 @@ public class VeoVideoDemo {
     }
     
     private static void showMenu() {
-        logger.info("Available approaches:");
-        logger.info("1. HttpClient (pure Java, no Spring)");
-        logger.info("2. RestClient (Spring's modern HTTP client)");
-        logger.info("3. SelfScheduling polling strategy");
-        logger.info("4. FixedRate polling strategy");
-        logger.info("5. VirtualThread polling strategy");
-        logger.info("0. Exit");
+        String menu = """
+            Available approaches:
+            1. HttpClient (pure Java, no Spring)
+            2. RestClient (Spring's modern HTTP client)
+            3. SelfScheduling polling strategy
+            4. FixedRate polling strategy
+            5. VirtualThread polling strategy
+            0. Exit
+            """;
+        logger.info(menu);
     }
     
     private static int getValidChoice(Scanner scanner) {
@@ -107,8 +116,7 @@ public class VeoVideoDemo {
         
         VideoResult result = future.get();
         String filename = saveVideo(result, "http_client_");
-        logger.info("Video saved: {}", filename);
-        logger.info("File size: {} bytes", result.videoBytes().length);
+        logVideoSaved(filename, result.videoBytes().length);
     }
     
     private static void demoRestClientApproach(String prompt) throws ExecutionException, InterruptedException, IOException {
@@ -123,8 +131,7 @@ public class VeoVideoDemo {
         
         VideoResult result = future.get();
         String filename = saveVideo(result, "rest_client_");
-        logger.info("Video saved: {}", filename);
-        logger.info("File size: {} bytes", result.videoBytes().length);
+        logVideoSaved(filename, result.videoBytes().length);
     }
     
     private static void demoSelfSchedulingStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
@@ -138,9 +145,7 @@ public class VeoVideoDemo {
         
         VideoResult result = future.get();
         String filename = saveVideo(result, "self_scheduling_");
-        logger.info("Video saved: {}", filename);
-        logger.info("Strategy: {}", strategy.getStrategyName());
-        logger.info("File size: {} bytes", result.videoBytes().length);
+        logVideoSavedWithStrategy(filename, result.videoBytes().length, strategy.getStrategyName());
     }
     
     private static void demoFixedRateStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
@@ -154,9 +159,7 @@ public class VeoVideoDemo {
         
         VideoResult result = future.get();
         String filename = saveVideo(result, "fixed_rate_");
-        logger.info("Video saved: {}", filename);
-        logger.info("Strategy: {}", strategy.getStrategyName());
-        logger.info("File size: {} bytes", result.videoBytes().length);
+        logVideoSavedWithStrategy(filename, result.videoBytes().length, strategy.getStrategyName());
     }
     
     private static void demoVirtualThreadStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
@@ -170,9 +173,7 @@ public class VeoVideoDemo {
         
         VideoResult result = future.get();
         String filename = saveVideo(result, "virtual_thread_");
-        logger.info("Video saved: {}", filename);
-        logger.info("Strategy: {}", strategy.getStrategyName());
-        logger.info("File size: {} bytes", result.videoBytes().length);
+        logVideoSavedWithStrategy(filename, result.videoBytes().length, strategy.getStrategyName());
     }
     
     private static String saveVideo(VideoResult result, String prefix) throws IOException {
@@ -188,5 +189,13 @@ public class VeoVideoDemo {
         }
         
         return filepath;
+    }
+    
+    private static void logVideoSaved(String filename, int fileSize) {
+        logger.info("Video saved: {} (size: {} bytes)", filename, fileSize);
+    }
+    
+    private static void logVideoSavedWithStrategy(String filename, int fileSize, String strategyName) {
+        logger.info("Video saved: {} (size: {} bytes, strategy: {})", filename, fileSize, strategyName);
     }
 }

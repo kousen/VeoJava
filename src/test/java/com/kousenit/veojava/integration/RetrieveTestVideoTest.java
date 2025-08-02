@@ -59,9 +59,16 @@ public class RetrieveTestVideoTest {
             
             HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
             
-            logger.info("📡 Response Status: {}", response.statusCode());
-            logger.info("📄 Content-Type: {}", response.headers().firstValue("content-type").orElse("unknown"));
-            logger.info("📏 Content-Length: {} bytes", response.body().length);
+            String responseInfo = """
+                📡 Response Status: %d
+                📄 Content-Type: %s
+                📏 Content-Length: %d bytes
+                """.formatted(
+                    response.statusCode(),
+                    response.headers().firstValue("content-type").orElse("unknown"),
+                    response.body().length
+                );
+            logger.info(responseInfo);
             
             if (response.statusCode() == 200) {
                 // Basic assertions for successful download
@@ -82,8 +89,11 @@ public class RetrieveTestVideoTest {
                 
                 Files.write(videoPath, response.body());
                 
-                logger.info("✅ Video saved to: {}", videoPath.toAbsolutePath());
-                logger.info("🎬 Video size: {} bytes", Files.size(videoPath));
+                String saveInfo = """
+                    ✅ Video saved to: %s
+                    🎬 Video size: %d bytes
+                    """.formatted(videoPath.toAbsolutePath(), Files.size(videoPath));
+                logger.info(saveInfo);
                 
                 // Verify file was written correctly
                 assertTrue(Files.exists(videoPath), "Video file should exist after download");

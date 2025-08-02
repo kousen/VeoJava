@@ -398,7 +398,9 @@ class VideoGenerationControllerTest {
         // When & Then
         mockMvc.perform(put("/api/video/generate/rest-client")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"prompt\": \"test\"}"))
+                .content("""
+                    {"prompt": "test"}
+                    """))
                 .andExpect(status().isMethodNotAllowed());
     }
 
