@@ -35,6 +35,7 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 // Enable preview features for application plugin run task
 tasks.named<JavaExec>("run") {
     jvmArgs("--enable-preview")
+    standardInput = System.`in`  // Enable console input for interactive mode
 }
 
 repositories {
