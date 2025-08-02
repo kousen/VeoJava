@@ -1,15 +1,15 @@
 # Veo Java - Google Gemini Veo 3 Video Generator Java Client
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](https://img.shields.io/badge/Java-22+-blue.svg)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3+-green.svg)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-24+-blue.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)](https://spring.io/projects/spring-boot)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kousen_VeoJava&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=kousen_VeoJava)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=kousen_VeoJava&metric=coverage)](https://sonarcloud.io/summary/new_code?id=kousen_VeoJava)
 [![Build and Analyze](https://github.com/kousen/VeoJava/actions/workflows/build.yml/badge.svg)](https://github.com/kousen/VeoJava/actions/workflows/build.yml)
 
 This Spring Boot application demonstrates multiple approaches to integrate with Google's Gemini Veo 3 video generation API from Java. The implementation is based on the REST API documented at https://ai.google.dev/gemini-api/docs/video (note that the official examples only show Python, JavaScript, and Go, but this project demonstrates Java integration patterns).
 
-> **⚠️ Important**: This is a demonstration project showing different Java polling strategies for long-running operations. Each video generation costs ~$6.00 and requires Google API access approval.
+> **⚠️ Important**: This is a demonstration project showing different Java polling strategies for long-running operations. Each video generation costs ~$3.20 with the fast preview model and requires Google API access approval.
 
 ## Features
 
@@ -30,7 +30,7 @@ This Spring Boot application demonstrates multiple approaches to integrate with 
 
 ## Prerequisites
 
-1. **Java 22** or later (Java 21+ for most features, Java 22+ for unnamed variables)
+1. **Java 24** or later (with preview features for primitive patterns)
 2. **Gradle** (wrapper included)  
 3. **Gemini API Key** with **Veo 3 Access** — Set the `GOOGLEAI_API_KEY` or `GEMINI_API_KEY` environment variable
    - Note: Veo 3 is in controlled access and may require approval from Google
@@ -50,8 +50,18 @@ export GEMINI_API_KEY="your-api-key-here"
 ```
 
 ### 3. Run the application
+
+Choose one of these approaches:
+
 ```bash
+# Spring Boot application (full context)
 ./gradlew bootRun
+
+# Lightweight demo (application plugin)
+./gradlew run
+
+# Or from IDE after setting Java 24
+# Run VeoVideoDemo.main() directly
 ```
 
 ### 4. Test the endpoints
@@ -88,16 +98,15 @@ curl -X POST http://localhost:8080/api/video/generate/rest-client \
 ```
 
 ### Interactive Demo
-⚠️ **Cost Warning**: Each video costs ~$6.00 (8 seconds × $0.75/second)
+⚠️ **Cost Warning**: Each video costs ~$3.20 (8 seconds × $0.40/second with fast preview model)
 
 Run the interactive demo:
 ```bash
-java -cp "build/classes/java/main:$(./gradlew -q printClasspath)" com.kousenit.veojava.VeoVideoDemo
-```
-
-Or use Gradle:
-```bash
+# Recommended: Use Gradle (handles Java 24 toolchain automatically)
 ./gradlew run
+
+# Alternative: Direct execution (requires Java 24 with preview features)
+# java --enable-preview -cp "build/classes/java/main:$(./gradlew -q printClasspath)" com.kousenit.veojava.VeoVideoDemo
 ```
 
 The demo will present an interactive menu where you can:
@@ -113,6 +122,7 @@ Edit `src/main/resources/application.properties`:
 ```properties
 # API Configuration - checks GOOGLEAI_API_KEY first, then GEMINI_API_KEY
 gemini.api.key=${GOOGLEAI_API_KEY:${GEMINI_API_KEY}}
+veo.api.model=veo-3.0-fast-generate-preview
 
 # Polling Configuration
 veo.polling.interval-seconds=5
@@ -152,7 +162,7 @@ spring.mvc.async.request-timeout=600000
 
 ## Important Notes
 
-- **Paid Feature**: Veo 3 costs $0.75/second (~$6 for 8-second videos)
+- **Paid Feature**: Veo 3 fast preview costs $0.40/second (~$3.20 for 8-second videos)
 - **8-second videos**: Current limitation of the API
 - **720p @ 24 fps**: Fixed resolution and frame rate
 - **Redirect handling**: All HTTP clients must follow 302 redirects for video downloads
@@ -216,13 +226,23 @@ This project demonstrates several key Java/Spring patterns:
 - **Async Patterns**: `SelfScheduling`, `FixedRate`, `VirtualThread`, and Reactive streams
 - **Polling Strategy Analysis**: Comprehensive comparison of non-busy-waiting approaches
 - **Record-Based Data Models**: All DTOs in a single `VeoJavaRecords` class for easy static imports
-- **Modern Java Features**: Sealed interfaces, pattern matching, virtual threads, unnamed variables, stream gatherers (Java 22+)
+- **Modern Java Features**: Sealed interfaces, pattern matching, virtual threads, text blocks, primitive patterns with guards (Java 24 preview), exception pattern matching
 - **Configuration Properties**: Type-safe configuration with `@ConfigurationProperties` and proper Spring Boot 3.4+ patterns
 - **Polling Strategies**: Different approaches to handle long-running operations with proper resource cleanup
 - **Error Handling**: Comprehensive error handling across sync and async flows
 - **Resource Management**: Proper `@PreDestroy` cleanup for `ScheduledExecutorService` instances to prevent memory leaks
 - **Input Validation**: Bean Validation with `@Valid` and `@NotBlank` annotations
 - **Testing Patterns**: Modern Spring Boot testing with `@MockitoBean`, async controller testing, and cost-protection measures
+
+## Modern Java Features Showcase
+
+This project demonstrates cutting-edge Java 24 features:
+
+- **[MODERN_JAVA_FEATURES.md](MODERN_JAVA_FEATURES.md)** - Comprehensive documentation of Java 24 preview features and modern patterns
+- **Primitive Patterns with Guards**: Type-safe pattern matching on primitive types
+- **Text Blocks**: Multi-line strings throughout the application  
+- **Exception Pattern Matching**: Clean error handling with switch expressions
+- **Enhanced Switch Expressions**: Multiple case values and arrow syntax
 
 ## YouTube Tutorial
 
@@ -246,7 +266,7 @@ This project serves multiple purposes:
 
 1. **Production Example**: Real-world integration with Google's Veo 3 API including proper error handling, timeouts, and redirect management
 2. **Learning Resource**: Comprehensive comparison of 5 different polling strategies from naive blocking to advanced async patterns
-3. **Modern Java Showcase**: Demonstrates records, sealed interfaces, virtual threads (Java 21+), reactive streams, and other contemporary features
+3. **Modern Java Showcase**: Demonstrates records, sealed interfaces, virtual threads, primitive patterns with guards (Java 24 preview), reactive streams, and other contemporary features
 4. **Performance Analysis**: Includes detailed metrics and recommendations for different concurrency approaches
 
 ## Contributing

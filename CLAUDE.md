@@ -15,6 +15,7 @@ This file contains important context for Claude Code to understand this project 
 - **Record Organization**: All DTOs are in a single `VeoJavaRecords` class for easy static imports
 - **Multiple Client Approaches**: RestClient, HttpClient, and WebClient implementations
 - **Async Patterns**: SelfScheduling, FixedRate, VirtualThread, and Reactive polling strategies
+- **Application Plugin**: Provides `./gradlew run` task for standalone demo execution
 
 ## Build & Test Commands
 
@@ -25,8 +26,11 @@ This file contains important context for Claude Code to understand this project 
 # Run tests
 ./gradlew test
 
-# Run the application
+# Run the application (Spring Boot context)
 ./gradlew bootRun
+
+# Run the standalone demo (lightweight, no Spring context)
+./gradlew run
 
 # Run checks (includes tests, formatting, etc.)
 ./gradlew check
@@ -75,6 +79,7 @@ Main configuration in `application.properties`:
 ```properties
 # API Configuration - checks GOOGLEAI_API_KEY first, then GEMINI_API_KEY
 gemini.api.key=${GOOGLEAI_API_KEY:${GEMINI_API_KEY}}
+veo.api.model=veo-3.0-fast-generate-preview
 veo.polling.interval-seconds=5
 veo.polling.max-timeout-minutes=10
 veo.output.directory=./videos
@@ -154,7 +159,7 @@ When making changes:
 8. **Testing patterns**: Use `@MockitoBean` for Spring Boot 3.4+, `MockMvc.asyncDispatch()` for async endpoints
 9. **Input validation**: Use `@Valid` with `@NotBlank` for prompt validation
 10. **Educational content**: When updating implementations, also update corresponding sections in tutorial materials
-11. **Cost awareness**: Remember each test video costs ~$6, design tests accordingly
+11. **Cost awareness**: Remember each test video costs ~$3.20 with fast preview model, design tests accordingly
 
 ## API Endpoints
 
@@ -248,8 +253,62 @@ This project includes comprehensive tutorial materials for teaching Java async p
 - **[NETWORKING_STRATEGY_ANALYSIS.md](NETWORKING_STRATEGY_ANALYSIS.md)** - Comprehensive analysis and recommendations for different approaches
 - **[API Implementation Notes](API_IMPLEMENTATION_NOTES.md)** - Comprehensive technical documentation of API behavior, redirect handling, and response structure discoveries
 
-This project serves as both a working example of Google Veo 3 integration and a comprehensive educational resource for Java developers learning modern async patterns, from naive busy-waiting to enterprise-grade solutions using virtual threads and reactive streams.
+This project serves as both a working example of Google Veo 3 integration and a comprehensive educational resource for Java developers learning:
+- Modern async patterns, from naive busy-waiting to enterprise-grade solutions
+- Java 24 preview features in real-world applications
+- Multiple HTTP client approaches and their trade-offs
+- Gradle toolchain configuration for modern Java development
+- Interactive console applications with proper input handling
 
 ## Modern Java Features
 
-This project showcases cutting-edge Java 24 features including primitive patterns, enhanced switch expressions, and advanced pattern matching. See **[MODERN_JAVA_FEATURES.md](MODERN_JAVA_FEATURES.md)** for a comprehensive guide to all modern Java features used in this project.
+This project showcases cutting-edge Java 24 features including:
+
+- **Primitive Patterns with Guards**: Pattern matching on primitive types with `when` clauses
+- **Text Blocks**: Multi-line strings throughout the application for better readability
+- **Exception Pattern Matching**: Clean error handling with switch expressions on exception types
+- **Enhanced Switch Expressions**: Multiple case values and arrow syntax
+- **Pattern Matching for instanceof**: Automatic type casting and variable binding
+
+See **[MODERN_JAVA_FEATURES.md](MODERN_JAVA_FEATURES.md)** for a comprehensive guide to all modern Java features used in this project.
+
+## Build Configuration for Java 24
+
+The project uses Gradle toolchains and preview features:
+
+```kotlin
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
+application {
+    mainClass.set("com.kousenit.veojava.VeoVideoDemo")
+}
+
+// Enable preview features for all tasks
+tasks.withType<JavaCompile> {
+    options.compilerArgs.addAll(listOf("--enable-preview"))
+}
+
+tasks.withType<Test> {
+    jvmArgs("--enable-preview")
+}
+
+// Enable preview features for both Spring Boot and application plugin
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    jvmArgs("--enable-preview")
+}
+
+tasks.named<JavaExec>("run") {
+    jvmArgs("--enable-preview")
+    standardInput = System.`in`  // Enable console input for interactive mode
+}
+```
+
+**Key Points**:
+- Gradle toolchain ensures Java 24 is used for compilation regardless of system Java version
+- Preview features are enabled for compilation, testing, and runtime
+- Application plugin provides `./gradlew run` as an alternative to IDE main method execution
+- Console input is configured for interactive demo usage
