@@ -17,11 +17,12 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for better analysis
           
-      - name: Set up JDK 24
+      - name: Set up JDK 24 with Preview Features
         uses: actions/setup-java@v4
         with:
           java-version: 24
           distribution: 'temurin'
+          # Note: Preview features enabled via Gradle configuration
           
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
