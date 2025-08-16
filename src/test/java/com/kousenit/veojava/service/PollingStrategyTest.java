@@ -11,6 +11,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -145,6 +147,44 @@ class PollingStrategyTest {
         
         // Clean up
         future.cancel(true);
+    }
+
+    @Test
+    void testSelfSchedulingPollingStrategy_SuccessfulCompletion() throws Exception {
+        // Test that SelfSchedulingPollingStrategy can complete successfully
+        SelfSchedulingPollingStrategy strategy = new SelfSchedulingPollingStrategy();
+        
+        when(mockClient.submitVideoGeneration(testRequest)).thenReturn(testResponse);
+        when(mockClient.checkOperationStatus(testResponse.operationId())).thenReturn(completedStatus);
+        when(mockClient.downloadVideo(testResponse.operationId())).thenReturn(testVideoResult);
+
+        // When
+        CompletableFuture<VideoResult> future = strategy.generateVideo(mockClient, testRequest);
+        VideoResult result = future.get(10, TimeUnit.SECONDS);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("test_video_123.mp4", result.filename());
+        
+        verify(mockClient).submitVideoGeneration(testRequest);
+        verify(mockClient).checkOperationStatus(testResponse.operationId());
+        verify(mockClient).downloadVideo(testResponse.operationId());
+    }
+
+    @Test
+    void testSelfSchedulingPollingStrategy_SubmissionFailure() {
+        SelfSchedulingPollingStrategy strategy = new SelfSchedulingPollingStrategy();
+        RuntimeException error = new RuntimeException("Submission failed");
+        
+        when(mockClient.submitVideoGeneration(testRequest)).thenThrow(error);
+
+        CompletableFuture<VideoResult> future = strategy.generateVideo(mockClient, testRequest);
+
+        ExecutionException exception = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertEquals("Submission failed", exception.getCause().getMessage());
+        verify(mockClient).submitVideoGeneration(testRequest);
+        verify(mockClient, never()).checkOperationStatus(any());
     }
 
     @Test
