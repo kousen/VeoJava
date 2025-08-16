@@ -129,7 +129,7 @@ class VirtualThreadPollingStrategyTest {
         // Then - future should complete exceptionally
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(5, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         assertEquals("API submission failed", exception.getCause().getMessage());
         assertTrue(future.isCompletedExceptionally());
         
@@ -144,7 +144,7 @@ class VirtualThreadPollingStrategyTest {
         AtomicInteger callCount = new AtomicInteger(0);
         
         when(mockClient.submitVideoGeneration(testRequest)).thenReturn(testResponse);
-        when(mockClient.checkOperationStatus(testResponse.operationId())).thenAnswer(invocation -> {
+        when(mockClient.checkOperationStatus(testResponse.operationId())).thenAnswer(_ -> {
             int count = callCount.incrementAndGet();
             if (count < 3) {
                 return inProgressStatus; // Still in progress
@@ -179,7 +179,7 @@ class VirtualThreadPollingStrategyTest {
         // Then - should complete exceptionally with operation error
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(10, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         
         assertTrue(exception.getCause().getMessage().contains("Video generation failed"));
         assertTrue(exception.getCause().getMessage().contains("Invalid request"));
@@ -202,7 +202,7 @@ class VirtualThreadPollingStrategyTest {
         // Then - should complete exceptionally
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(10, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         
         assertEquals("Network error during polling", exception.getCause().getMessage());
         
@@ -225,7 +225,7 @@ class VirtualThreadPollingStrategyTest {
         // Then - should complete exceptionally
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(10, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         
         assertEquals("Download failed", exception.getCause().getMessage());
         
@@ -236,7 +236,7 @@ class VirtualThreadPollingStrategyTest {
 
     @Test
     void testGenerateVideo_InterruptedException() throws Exception {
-        // Given - setup a scenario that could be interrupted
+        // Given - set up a scenario that could be interrupted
         when(mockClient.submitVideoGeneration(testRequest)).thenReturn(testResponse);
         when(mockClient.checkOperationStatus(testResponse.operationId())).thenReturn(inProgressStatus);
 
@@ -261,7 +261,7 @@ class VirtualThreadPollingStrategyTest {
     }
 
     @Test
-    void testShutdown_GracefulShutdown() throws Exception {
+    void testShutdown_GracefulShutdown() {
         // Given - strategy is running
         when(mockClient.submitVideoGeneration(testRequest)).thenReturn(testResponse);
         when(mockClient.checkOperationStatus(testResponse.operationId())).thenReturn(inProgressStatus);
@@ -272,7 +272,7 @@ class VirtualThreadPollingStrategyTest {
         strategy.shutdown();
         
         // Then - should shutdown gracefully
-        // The future might be cancelled or continue running briefly
+        // The future might be canceled or continue running briefly
         // Main thing is shutdown() doesn't throw exceptions
         
         future.cancel(true); // Clean up
@@ -280,7 +280,7 @@ class VirtualThreadPollingStrategyTest {
 
     @Test
     void testMultipleConcurrentRequests() throws Exception {
-        // Given - multiple requests (virtual threads handle high concurrency well)
+        // Given-multiple requests (virtual threads handle high concurrency well)
         VideoGenerationRequest request1 = VideoGenerationRequest.of("Prompt 1");
         VideoGenerationRequest request2 = VideoGenerationRequest.of("Prompt 2");
         VideoGenerationRequest request3 = VideoGenerationRequest.of("Prompt 3");

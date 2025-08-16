@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -130,7 +129,7 @@ class FixedRatePollingStrategyTest {
         // Then - future should complete exceptionally
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(5, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         assertEquals("API submission failed", exception.getCause().getMessage());
         assertTrue(future.isCompletedExceptionally());
         
@@ -145,7 +144,7 @@ class FixedRatePollingStrategyTest {
         AtomicInteger callCount = new AtomicInteger(0);
         
         when(mockClient.submitVideoGeneration(testRequest)).thenReturn(testResponse);
-        when(mockClient.checkOperationStatus(testResponse.operationId())).thenAnswer(invocation -> {
+        when(mockClient.checkOperationStatus(testResponse.operationId())).thenAnswer(_ -> {
             int count = callCount.incrementAndGet();
             if (count < 3) {
                 return inProgressStatus; // Still in progress
@@ -180,7 +179,7 @@ class FixedRatePollingStrategyTest {
         // Then - should complete exceptionally with operation error
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(10, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         
         assertTrue(exception.getCause().getMessage().contains("Video generation failed"));
         assertTrue(exception.getCause().getMessage().contains(testResponse.operationId()));
@@ -204,7 +203,7 @@ class FixedRatePollingStrategyTest {
         // Then - should complete exceptionally
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(10, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         
         assertEquals("Network error during polling", exception.getCause().getMessage());
         
@@ -227,7 +226,7 @@ class FixedRatePollingStrategyTest {
         // Then - should complete exceptionally
         ExecutionException exception = assertThrows(ExecutionException.class, 
                 () -> future.get(10, TimeUnit.SECONDS));
-        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertInstanceOf(RuntimeException.class, exception.getCause());
         
         assertEquals("Download failed", exception.getCause().getMessage());
         
@@ -263,7 +262,7 @@ class FixedRatePollingStrategyTest {
     }
 
     @Test
-    void testShutdown_GracefulShutdown() throws Exception {
+    void testShutdown_GracefulShutdown() {
         // Given - strategy is running
         when(mockClient.submitVideoGeneration(testRequest)).thenReturn(testResponse);
         when(mockClient.checkOperationStatus(testResponse.operationId())).thenReturn(inProgressStatus);
@@ -274,7 +273,7 @@ class FixedRatePollingStrategyTest {
         strategy.shutdown();
         
         // Then - should shutdown gracefully
-        // The future might be cancelled or continue running briefly
+        // The future might be canceled or continue running briefly
         // Main thing is shutdown() doesn't throw exceptions
         
         future.cancel(true); // Clean up
