@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public final class VirtualThreadPollingStrategy implements PollingStrategy {
     
     // Virtual thread executor - extremely lightweight for I/O bound tasks
-    private static final ExecutorService virtualExecutor = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService virtualExecutor = Executors.newVirtualThreadPerTaskExecutor();
     
     @Override
     public CompletableFuture<VideoResult> generateVideo(VeoVideoClient client, VideoGenerationRequest request) {
