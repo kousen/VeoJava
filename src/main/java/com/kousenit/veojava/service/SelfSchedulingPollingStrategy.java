@@ -42,7 +42,9 @@ public final class SelfSchedulingPollingStrategy implements PollingStrategy {
 
                     if (status.error() != null) {
                         future.completeExceptionally(
-                                new RuntimeException("Video generation failed: " + status.error().message()));
+                                new RuntimeException(
+                                        "Video generation failed for operation %s: %s"
+                                                .formatted(operationId, status.error().message())));
                         return;
                     }
 

@@ -39,9 +39,6 @@ public final class FixedRatePollingStrategy implements PollingStrategy {
         long periodSeconds = 5;
 
         ScheduledFuture<?> pollingTask = scheduler.scheduleAtFixedRate(() -> {
-            if (future.isDone()) { // fast no-op if already completed/canceled
-                return;
-            }
             try {
                 if (attempts.incrementAndGet() > maxAttempts) {
                     future.completeExceptionally(new TimeoutException("Video generation timed out"));
@@ -56,7 +53,9 @@ public final class FixedRatePollingStrategy implements PollingStrategy {
 
                 if (status.error() != null) {
                     future.completeExceptionally(
-                            new RuntimeException("Video generation failed: " + status.error().message()));
+                            new RuntimeException(
+                                    "Video generation failed for operation %s: %s"
+                                            .formatted(operationId, status.error().message())));
                     return;
                 }
 

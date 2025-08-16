@@ -20,10 +20,9 @@ import java.util.Base64;
 public class ReactiveVeoVideoClient {
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration TIMEOUT = Duration.ofMinutes(10);
-    private static final Retry TRANSIENT_RETRY = Retry
+    private static final Retry NETWORK_RETRY = Retry
             .backoff(3, Duration.ofSeconds(2))
-            .maxBackoff(Duration.ofSeconds(10))
-            .filter(ReactiveVeoVideoClient::isTransient);
+            .maxBackoff(Duration.ofSeconds(10));
 
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     private static final String OPERATION_ENDPOINT = "/operations/";
@@ -73,18 +72,19 @@ public class ReactiveVeoVideoClient {
 
     private Mono<String> pollUntilComplete(String operationId) {
         return Flux.interval(Duration.ZERO, POLL_INTERVAL)
-                .concatMap(_ -> checkOperationStatus(operationId)
-                        .retryWhen(TRANSIENT_RETRY))
+                .concatMap(_ -> checkOperationStatus(operationId))
                 .takeUntil(OperationStatus::done)
                 .last()
                 .flatMap(status ->
                         status.error() != null
-                                ? Mono.error(new RuntimeException("Video generation failed: " + status.error().message()))
+                                ? Mono.error(new RuntimeException(
+                                "Video generation failed for operation %s: %s"
+                                        .formatted(operationId, status.error().message())))
                                 : Mono.just(operationId));
     }
 
     private Mono<VideoResult> downloadVideo(String operationId) {
-        return assertCompleted(operationId)
+        return checkOperationStatus(operationId)
                 .flatMap(status -> {
                     var response = (status.response() instanceof OperationStatus.OperationResponse op) ? op : null;
                     if (response == null ||
@@ -103,25 +103,13 @@ public class ReactiveVeoVideoClient {
                 });
     }
 
-    private Mono<OperationStatus> assertCompleted(String operationId) {
-        return checkOperationStatus(operationId)
-                .retryWhen(TRANSIENT_RETRY)
-                .flatMap(status -> {
-                    if (!status.done()) {
-                        return Mono.error(new IllegalStateException("Operation not done: " + operationId));
-                    }
-                    if (status.error() != null) {
-                        return Mono.error(new RuntimeException("Operation failed: " + status.error().message()));
-                    }
-                    return Mono.just(status);
-                });
-    }
 
     private Mono<byte[]> fetchVideoBytes(String uri) {
         return webClient.get()
                 .uri(uri)
                 .retrieve()
-                .bodyToMono(byte[].class);
+                .bodyToMono(byte[].class)
+                .retryWhen(NETWORK_RETRY);
     }
 
     private VideoResult toVideoResult(byte[] videoBytes, String operationId) {
@@ -134,9 +122,4 @@ public class ReactiveVeoVideoClient {
         return s == null ? "unknown" : s.replaceAll("[^a-zA-Z0-9]", "_");
     }
 
-    private static boolean isTransient(Throwable t) {
-        // Placeholder heuristic; adjust (e.g., instanceof WebClientRequestException / 5xx)
-        String msg = t.getMessage();
-        return msg != null && (msg.contains("timeout") || msg.contains("Connection"));
-    }
 }
