@@ -1,7 +1,11 @@
 package com.kousenit.veojava.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @ConfigurationProperties(prefix = "veo")
@@ -49,4 +53,17 @@ public class VeoClientConfig {
     
     public Output getOutput() { return output; }
     public void setOutput(Output output) { this.output = output; }
+    
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder,
+                                   @Value("${gemini.api.key}") String apiKey) {
+        // RestTemplate follows redirects automatically for GET requests - no special configuration needed!
+        // Using RestTemplateBuilder for proper Spring Boot integration and auto-configuration
+        return builder
+                .rootUri("https://generativelanguage.googleapis.com/v1beta")
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("User-Agent", "VeoJava/1.0")
+                .defaultHeader("x-goog-api-key", apiKey)
+                .build();
+    }
 }
