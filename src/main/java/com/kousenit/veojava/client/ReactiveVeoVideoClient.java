@@ -1,47 +1,53 @@
 package com.kousenit.veojava.client;
 
+import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationResponse;
-import com.kousenit.veojava.model.VeoJavaRecords.OperationStatus;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.Base64;
 
 @Component("reactiveVeoVideoClient")
 public class ReactiveVeoVideoClient {
-    
+    private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration TIMEOUT = Duration.ofMinutes(10);
+    private static final Retry TRANSIENT_RETRY = Retry
+            .backoff(3, Duration.ofSeconds(2))
+            .maxBackoff(Duration.ofSeconds(10))
+            .filter(ReactiveVeoVideoClient::isTransient);
+
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
-    private final String generateEndpoint;
     private static final String OPERATION_ENDPOINT = "/operations/";
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final String API_KEY_HEADER = "x-goog-api-key";
-    
+
+    private final String generateEndpoint;
     private final WebClient webClient;
-    
-    public ReactiveVeoVideoClient(@Value("${gemini.api.key:#{environment.GEMINI_API_KEY}}") String apiKey,
-                                 @Value("${veo.api.model:veo-3.0-fast-generate-preview}") String model) {
+
+    public ReactiveVeoVideoClient(
+            @Value("${gemini.api.key}") String apiKey,
+            @Value("${veo.api.model:veo-3.0-fast-generate-preview}") String model) {
+
         this.generateEndpoint = "/models/" + model + ":predictLongRunning";
-        // Configure HTTP client to follow redirects
         HttpClient httpClient = HttpClient.create().followRedirect(true);
-        ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
-        
         this.webClient = WebClient.builder()
                 .baseUrl(BASE_URL)
-                .clientConnector(connector)
-                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024)) // 2MB buffer
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .codecs(c -> c.defaultCodecs().maxInMemorySize(2 * 1024 * 1024))
                 .defaultHeader(API_KEY_HEADER, apiKey)
                 .defaultHeader("Content-Type", CONTENT_TYPE_JSON)
                 .build();
     }
-    
+
     public Mono<VideoGenerationResponse> submitVideoGeneration(VideoGenerationRequest request) {
         return webClient.post()
                 .uri(generateEndpoint)
@@ -49,82 +55,88 @@ public class ReactiveVeoVideoClient {
                 .retrieve()
                 .bodyToMono(VideoGenerationResponse.class);
     }
-    
+
     public Mono<OperationStatus> checkOperationStatus(String operationId) {
-        // operationId is actually the full operation name like "models/veo-3.0-fast-generate-preview/operations/xyz"
-        String uri = operationId.startsWith("models/") ? 
-                "/" + operationId : 
-                OPERATION_ENDPOINT + operationId;
-                
+        String uri = operationId.startsWith("models/") ? "/" + operationId : OPERATION_ENDPOINT + operationId;
         return webClient.get()
                 .uri(uri)
                 .retrieve()
                 .bodyToMono(OperationStatus.class);
     }
-    
-    public Mono<VideoResult> downloadVideo(String operationId) {
-        return checkOperationStatus(operationId)
-                .handle((status, sink) -> {
-                    if (!status.done()) {
-                        sink.error(new IllegalStateException("Operation not completed yet"));
-                        return;
-                    }
-                    
-                    if (status.error() != null) {
-                        sink.error(new RuntimeException("Operation failed: " + status.error().message()));
-                        return;
-                    }
-                    
-                    // Check the new response structure
-                    if (!(status.response() instanceof OperationStatus.OperationResponse response) ||
+
+    public Mono<VideoResult> generateVideoReactive(VideoGenerationRequest request) {
+        return submitVideoGeneration(request)
+                .flatMap(r -> pollUntilComplete(r.operationId()))
+                .flatMap(this::downloadVideo)
+                .timeout(TIMEOUT);
+    }
+
+    private Mono<String> pollUntilComplete(String operationId) {
+        return Flux.interval(Duration.ZERO, POLL_INTERVAL)
+                .concatMap(_ -> checkOperationStatus(operationId)
+                        .retryWhen(TRANSIENT_RETRY))
+                .takeUntil(OperationStatus::done)
+                .last()
+                .flatMap(status ->
+                        status.error() != null
+                                ? Mono.error(new RuntimeException("Video generation failed: " + status.error().message()))
+                                : Mono.just(operationId));
+    }
+
+    private Mono<VideoResult> downloadVideo(String operationId) {
+        return assertCompleted(operationId)
+                .flatMap(status -> {
+                    var response = (status.response() instanceof OperationStatus.OperationResponse op) ? op : null;
+                    if (response == null ||
                         response.generateVideoResponse() == null ||
                         response.generateVideoResponse().generatedSamples() == null ||
                         response.generateVideoResponse().generatedSamples().isEmpty()) {
-                        sink.error(new RuntimeException("No video data found in response"));
-                        return;
+                        return Mono.error(new RuntimeException("No video data in completed operation"));
                     }
-                    
                     var sample = response.generateVideoResponse().generatedSamples().getFirst();
                     var videoUri = sample.video().uri();
-                    
-                    sink.next(videoUri);
-                })
-                .flatMap(videoUri -> 
-                    // Download the video from the URI using WebClient
-                    webClient.get()
-                            .uri((String) videoUri)
-                            .retrieve()
-                            .bodyToMono(byte[].class)
-                            .map(videoBytes -> {
-                                var base64Video = Base64.getEncoder().encodeToString(videoBytes);
-                                var mimeType = "video/mp4"; // Default since WebClient response headers are complex to access here
-                                var filename = "video_" + operationId.replaceAll("[^a-zA-Z0-9]", "_") + ".mp4";
-                                
-                                return new VideoResult(base64Video, mimeType, filename, videoBytes);
-                            })
-                );
-    }
-    
-    public Mono<VideoResult> generateVideoReactive(VideoGenerationRequest request) {
-        return submitVideoGeneration(request)
-                .flatMap(response -> pollUntilComplete(response.operationId()))
-                .flatMap(this::downloadVideo);
-    }
-    
-    private Mono<String> pollUntilComplete(String operationId) {
-        // Clean reactive polling using Flux.interval - preferred approach for time-based operations.
-        // This avoids exception-based control flow and clearly expresses the polling intent.
-        return Flux.interval(Duration.ZERO, Duration.ofSeconds(5))
-                .flatMap(_ -> checkOperationStatus(operationId))
-                .filter(OperationStatus::done)
-                .next()
-                .<String>handle((status, sink) -> {
-                    if (status.error() != null) {
-                        sink.error(new RuntimeException("Video generation failed: " + status.error().message()));
-                    } else {
-                        sink.next(operationId);
+                    if (videoUri == null || videoUri.isBlank()) {
+                        return Mono.error(new RuntimeException("Video URI missing"));
                     }
-                })
-                .timeout(Duration.ofMinutes(10));
+                    return fetchVideoBytes(videoUri)
+                            .map(bytes -> toVideoResult(bytes, operationId));
+                });
+    }
+
+    private Mono<OperationStatus> assertCompleted(String operationId) {
+        return checkOperationStatus(operationId)
+                .retryWhen(TRANSIENT_RETRY)
+                .flatMap(status -> {
+                    if (!status.done()) {
+                        return Mono.error(new IllegalStateException("Operation not done: " + operationId));
+                    }
+                    if (status.error() != null) {
+                        return Mono.error(new RuntimeException("Operation failed: " + status.error().message()));
+                    }
+                    return Mono.just(status);
+                });
+    }
+
+    private Mono<byte[]> fetchVideoBytes(String uri) {
+        return webClient.get()
+                .uri(uri)
+                .retrieve()
+                .bodyToMono(byte[].class);
+    }
+
+    private VideoResult toVideoResult(byte[] videoBytes, String operationId) {
+        String base64 = Base64.getEncoder().encodeToString(videoBytes);
+        String filename = "video_" + sanitize(operationId) + ".mp4";
+        return new VideoResult(base64, "video/mp4", filename, videoBytes != null ? videoBytes : new byte[0]);
+    }
+
+    private static String sanitize(String s) {
+        return s == null ? "unknown" : s.replaceAll("[^a-zA-Z0-9]", "_");
+    }
+
+    private static boolean isTransient(Throwable t) {
+        // Placeholder heuristic; adjust (e.g., instanceof WebClientRequestException / 5xx)
+        String msg = t.getMessage();
+        return msg != null && (msg.contains("timeout") || msg.contains("Connection"));
     }
 }

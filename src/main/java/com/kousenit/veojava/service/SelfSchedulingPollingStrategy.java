@@ -24,35 +24,36 @@ public final class SelfSchedulingPollingStrategy implements PollingStrategy {
                 .thenCompose(response -> pollForCompletion(client, response.operationId()))
                 .thenApply(client::downloadVideo);
     }
-    
+
     private CompletableFuture<String> pollForCompletion(VeoVideoClient client, String operationId) {
         CompletableFuture<String> future = new CompletableFuture<>();
-        
+
         Runnable pollTask = new Runnable() {
             @Override
             public void run() {
+                if (future.isDone()) return;
                 try {
                     OperationStatus status = client.checkOperationStatus(operationId);
-                    
-                    if (status.done()) {
-                        if (status.error() != null) {
-                            future.completeExceptionally(
-                                new RuntimeException("Video generation failed: " + status.error().message())
-                            );
-                        } else {
-                            future.complete(operationId);
-                        }
-                    } else {
+
+                    if (!status.done()) {
                         scheduler.schedule(this, 5, TimeUnit.SECONDS);
+                        return;
                     }
+
+                    if (status.error() != null) {
+                        future.completeExceptionally(
+                                new RuntimeException("Video generation failed: " + status.error().message()));
+                        return;
+                    }
+
+                    future.complete(operationId);
                 } catch (Exception e) {
                     future.completeExceptionally(e);
                 }
             }
         };
-        
+
         scheduler.schedule(pollTask, 0, TimeUnit.SECONDS);
-        
         return future.orTimeout(10, TimeUnit.MINUTES);
     }
     

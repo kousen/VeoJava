@@ -24,7 +24,7 @@ public class VeoVideoDemo {
     
     private static final Logger logger = LoggerFactory.getLogger(VeoVideoDemo.class);
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "UnnecessaryModifier"})
     public static void main(String[] args) {
         if (System.getenv("GEMINI_API_KEY") == null) {
             logger.error("GEMINI_API_KEY environment variable is not set!");
