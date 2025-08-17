@@ -36,27 +36,29 @@ public class ReactiveVeoVideoClient {
             @Value("${gemini.api.key}") String apiKey,
             @Value("${veo.api.model:veo-3.0-fast-generate-preview}") String model) {
 
-        this.generateEndpoint = "/models/" + model + ":predictLongRunning";
+        this.generateEndpoint = BASE_URL + "/models/" + model + ":predictLongRunning";
         HttpClient httpClient = HttpClient.create().followRedirect(true);
         this.webClient = WebClient.builder()
-                .baseUrl(BASE_URL)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .codecs(c -> c.defaultCodecs().maxInMemorySize(2 * 1024 * 1024))
                 .defaultHeader(API_KEY_HEADER, apiKey)
-                .defaultHeader("Content-Type", CONTENT_TYPE_JSON)
+                .defaultHeader("User-Agent", "Java-http-client/24.0.2")
                 .build();
     }
 
     public Mono<VideoGenerationResponse> submitVideoGeneration(VideoGenerationRequest request) {
         return webClient.post()
                 .uri(generateEndpoint)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(VideoGenerationResponse.class);
     }
 
     public Mono<OperationStatus> checkOperationStatus(String operationId) {
-        String uri = operationId.startsWith("models/") ? "/" + operationId : OPERATION_ENDPOINT + operationId;
+        String uri = operationId.startsWith("models/") ? 
+                BASE_URL + "/" + operationId : 
+                BASE_URL + OPERATION_ENDPOINT + operationId;
         return webClient.get()
                 .uri(uri)
                 .retrieve()

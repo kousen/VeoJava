@@ -1,16 +1,20 @@
 package com.kousenit.veojava;
 
 import com.kousenit.veojava.client.HttpClientVeoVideoClient;
+import com.kousenit.veojava.client.ReactiveVeoVideoClient;
 import com.kousenit.veojava.client.RestClientVeoVideoClient;
 import com.kousenit.veojava.client.VeoVideoClient;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoGenerationRequest;
 import com.kousenit.veojava.model.VeoJavaRecords.VideoResult;
 import com.kousenit.veojava.service.SelfSchedulingPollingStrategy;
 import com.kousenit.veojava.service.FixedRatePollingStrategy;
+import com.kousenit.veojava.service.ReactivePollingStrategy;
 import com.kousenit.veojava.service.VirtualThreadPollingStrategy;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 public class VeoVideoDemo {
     
     private static final Logger logger = LoggerFactory.getLogger(VeoVideoDemo.class);
+    private static final String DEFAULT_MODEL = "veo-3.0-fast-generate-preview";
     
     @SuppressWarnings({"unused", "UnnecessaryModifier"})
     public static void main(String[] args) {
@@ -41,7 +46,7 @@ public class VeoVideoDemo {
             
             while (true) {
                 showMenu();
-                System.out.print("Choose an option (1-5, or 0 to exit): ");
+                System.out.print("Choose an option (1-6, or 0 to exit): ");
                 
                 int choice = getValidChoice(scanner);
                 if (choice == 0) {
@@ -63,7 +68,8 @@ public class VeoVideoDemo {
                         case 2 -> demoRestClientApproach(prompt);
                         case 3 -> demoSelfSchedulingStrategy(prompt);
                         case 4 -> demoFixedRateStrategy(prompt);
-                        case 5 -> demoVirtualThreadStrategy(prompt);
+                        case 5 -> demoReactiveStrategy(prompt);
+                        case 6 -> demoVirtualThreadStrategy(prompt);
                     }
                     
                     logger.info("✅ Video generation completed!");
@@ -82,7 +88,8 @@ public class VeoVideoDemo {
             2. RestClient (Spring's modern HTTP client)
             3. SelfScheduling polling strategy
             4. FixedRate polling strategy
-            5. VirtualThread polling strategy
+            5. Reactive polling strategy
+            6. VirtualThread polling strategy
             0. Exit
             """;
         logger.info(menu);
@@ -93,13 +100,13 @@ public class VeoVideoDemo {
             try {
                 int choice = Integer.parseInt(scanner.nextLine().trim());
                 switch (choice) {
-                    case 0, 1, 2, 3, 4, 5 -> {
+                    case 0, 1, 2, 3, 4, 5, 6 -> {
                         return choice;
                     }
-                    default -> logger.warn("Invalid choice {}. Please enter 0-5", choice);
+                    default -> logger.warn("Invalid choice {}. Please enter 0-6", choice);
                 }
             } catch (NumberFormatException e) {
-                logger.warn("Please enter a number (0-5)");
+                logger.warn("Please enter a number (0-6)");
             }
         }
     }
@@ -264,6 +271,24 @@ public class VeoVideoDemo {
         logVideoSavedWithStrategy(filename, result.videoBytes().length, strategy.getStrategyName());
     }
     
+    private static void demoReactiveStrategy(String prompt) throws ExecutionException, InterruptedException, IOException {
+        logger.info("=== Reactive Strategy ===");
+        String apiKey = System.getenv("GEMINI_API_KEY");
+        String model = "veo-3.0-fast-generate-preview"; // Use same default as HttpClient for consistency
+        logger.info("Using model: {}", model);
+        ReactiveVeoVideoClient reactiveClient = new ReactiveVeoVideoClient(apiKey, model);
+        ReactivePollingStrategy strategy = new ReactivePollingStrategy(reactiveClient);
+        VeoVideoClient client = new HttpClientVeoVideoClient(); // Passed but not used by reactive strategy
+        
+        CompletableFuture<VideoResult> future = strategy.generateVideo(
+                client, VideoGenerationRequest.of(prompt)
+        );
+        
+        VideoResult result = future.get();
+        String filename = saveVideo(result, "reactive_");
+        logVideoSavedWithStrategy(filename, result.videoBytes().length, strategy.getStrategyName());
+    }
+    
     private static String saveVideo(VideoResult result, String prefix) throws IOException {
         String outputDir = "./videos";
         Files.createDirectories(Paths.get(outputDir));
@@ -309,5 +334,24 @@ public class VeoVideoDemo {
             %s reading file '%s': %s
             Please enter prompt manually:
             """.formatted(errorType, filename, e.getMessage());
+    }
+    
+    private static String getConfiguredModel() {
+        try (InputStream input = VeoVideoDemo.class.getClassLoader().getResourceAsStream("application.properties")) {
+            if (input == null) {
+                logger.warn("Could not find application.properties, using default model: {}", DEFAULT_MODEL);
+                return DEFAULT_MODEL;
+            }
+            
+            Properties properties = new Properties();
+            properties.load(input);
+            String model = properties.getProperty("veo.api.model", DEFAULT_MODEL);
+            logger.info("Loaded model from application.properties: {}", model);
+            return model;
+            
+        } catch (IOException e) {
+            logger.warn("Error reading application.properties, using default model: {} (error: {})", DEFAULT_MODEL, e.getMessage());
+            return DEFAULT_MODEL;
+        }
     }
 }

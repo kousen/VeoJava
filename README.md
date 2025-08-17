@@ -22,7 +22,7 @@ This Spring Boot application demonstrates multiple approaches to integrate with 
   - `SelfScheduling`-based polling (dynamic intervals)
   - `FixedRate`-based polling (fixed intervals)
   - `VirtualThread`-based polling (Java 21+)
-  - Reactive `Flux`-based polling
+  - Reactive `Flux`-based polling (WebClient compatibility issue - see notes)
 
 - **REST API Endpoints** for testing all approaches
 - **Configuration** via `application.properties`
@@ -110,10 +110,18 @@ Run the interactive demo:
 ```
 
 The demo will present an interactive menu where you can:
-- Choose which approach to test (one at a time)
+- Choose which approach to test (options 1-6)
 - Enter custom prompts or use the default
 - See cost warnings before generating videos
 - Compare different implementations safely
+
+**Available options in demo:**
+1. HttpClient (pure Java, no Spring)
+2. RestClient (Spring's modern HTTP client)
+3. SelfScheduling polling strategy
+4. FixedRate polling strategy
+5. Reactive polling strategy ⚠️ (known WebClient compatibility issue)
+6. VirtualThread polling strategy
 
 ## Configuration
 
@@ -147,8 +155,8 @@ spring.mvc.async.request-timeout=600000
 
 1. **`SelfScheduling`** — Reschedules after each check completes (dynamic timing)
 2. **`FixedRate`** — Uses `ScheduledExecutorService` for fixed periodic checks
-3. **`VirtualThread`** — Uses virtual threads for lightweight blocking operations
-4. **`Reactive`** — Uses `Flux.interval` with clean polling patterns
+3. **`VirtualThread`** — Uses virtual threads for lightweight blocking operations (recommended)
+4. **`Reactive`** — Uses `Flux.interval` with clean polling patterns (WebClient compatibility issue)
 
 ### Video Generation Process
 
@@ -171,6 +179,7 @@ spring.mvc.async.request-timeout=600000
 - **Controlled access**: Veo 3 requires special API access approval
 - **English prompts**: Only English language supported
 - **Async timeout**: REST endpoints require 10-minute timeout due to 2-4 minute generation time
+- **⚠️ WebClient Compatibility**: The reactive approach (option 5) has a known compatibility issue with Google's Veo 3 API where identical requests work with HttpClient but fail with 400 Bad Request using WebClient/Reactor Netty. This appears to be a low-level protocol incompatibility. Use VirtualThread approach (option 6) for best reactive-style experience.
 
 ## Project Structure
 
